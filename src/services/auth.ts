@@ -36,8 +36,8 @@ export const authService = {
     storage.setToken(`mock-${data.role}-access-token`);
 
     return {
-      email: 'example@example.com',
-      id: '12345',
+      email: `${data.role}@example.com`,
+      id: data.role === 'driver' ? 'driver-1' : 'customer-1',
       name: `${data.role === 'driver' ? 'Driver' : 'Customer'} User`,
       role: data.role,
     };

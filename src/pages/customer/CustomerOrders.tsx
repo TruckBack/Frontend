@@ -11,6 +11,7 @@ import {
     Place,
 } from '@mui/icons-material';
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 type OrderStatus = 'pending' | 'in-transit' | 'delivered';
 
@@ -72,6 +73,7 @@ const mockOrders: CustomerOrder[] = [
 
 const CustomerOrders = () => {
     const theme = useTheme();
+    const navigate = useNavigate();
     const [selectedFilter, setSelectedFilter] = useState<'all' | OrderStatus>('all');
 
     const counts = useMemo(() => {
@@ -345,6 +347,14 @@ const CustomerOrders = () => {
                                         size="small"
                                         color="secondary"
                                         sx={{ flex: 1 }}
+                                        disabled={order.driverName === 'Not assigned'}
+                                        onClick={() => navigate(`/customer/chat/${order.id}`, {
+                                            state: {
+                                                partnerName: order.driverName,
+                                                orderTitle: order.orderNumber,
+                                                driverName: order.driverName,
+                                            },
+                                        })}
                                     >
                                         Chat
                                     </Button>

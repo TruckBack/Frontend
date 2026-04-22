@@ -8,11 +8,13 @@ import ActiveDeliveries from './pages/driver/ActiveDeliveries';
 import PastDeliveries from './pages/driver/PastDeliveries';
 import DriverMap from './pages/driver/DriverMap';
 import DriverProfile from './pages/driver/DriverProfile';
+import DriverChat from './pages/driver/DriverChat';
 import CustomerHome from './pages/customer/CustomerHome';
 import CustomerDashboard from './pages/customer/CustomerDashboard';
 import CustomerNewOrder from './pages/customer/CustomerNewOrder';
 import CustomerOrders from './pages/customer/CustomerOrders';
 import CustomerProfile from './pages/customer/CustomerProfile';
+import CustomerChat from './pages/customer/CustomerChat';
 import type { AccountRole } from './services/types';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -95,6 +97,8 @@ const AppContent = () => {
               <Route path="past" element={<PastDeliveries />} />
               <Route path="map" element={<DriverMap />} />
               <Route path="profile" element={<DriverProfile />} />
+              <Route path="chat" element={<DriverChat />} />
+              <Route path="chat/:orderId" element={<DriverChat />} />
               <Route index element={<Navigate to="home" replace />} />
             </Route>
             <Route path="/customer" element={
@@ -108,6 +112,8 @@ const AppContent = () => {
               <Route path="new-order" element={<CustomerNewOrder />} />
               <Route path="orders" element={<CustomerOrders />} />
               <Route path="profile" element={<CustomerProfile />} />
+              <Route path="chat" element={<CustomerChat />} />
+              <Route path="chat/:orderId" element={<CustomerChat />} />
               <Route index element={<Navigate to="home" replace />} />
             </Route>
             <Route path="*" element={<Navigate to="/" />} />

@@ -11,6 +11,7 @@ import {
     FavoriteBorder,
     Phone,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 export interface Delivery {
     id: string;
@@ -31,6 +32,7 @@ interface DeliveryCardProps {
 
 const DeliveryCard = ({ delivery }: DeliveryCardProps) => {
     const theme = useTheme();
+    const navigate = useNavigate();
 
     const getStatusColor = (status: Delivery['status']) => {
         switch (status) {
@@ -166,6 +168,13 @@ const DeliveryCard = ({ delivery }: DeliveryCardProps) => {
                     variant="contained"
                     color="secondary"
                     size="small"
+                    onClick={() => navigate(`/driver/chat/${delivery.id}`, {
+                        state: {
+                            partnerName: delivery.driverName,
+                            orderTitle: `${delivery.category} Delivery`,
+                            customerName: delivery.driverName,
+                        },
+                    })}
                 >
                     Chat
                 </Button>

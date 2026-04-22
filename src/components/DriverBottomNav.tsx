@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
     Box,
+    Badge,
     BottomNavigation,
     BottomNavigationAction,
     useTheme,
@@ -8,16 +9,25 @@ import {
 import {
     ElectricBoltOutlined,
     HistoryOutlined,
+    ChatBubbleOutline,
     MapOutlined,
     PersonOutlined,
 } from '@mui/icons-material';
+import { useAuth } from '../contexts/AuthContext';
+import { chatService } from '../services/chat';
 
 const DriverBottomNav = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const theme = useTheme();
+    const { user } = useAuth();
+    const unreadCount = user ? chatService.getUnreadCount('driver', user.id) : 0;
 
     const getValue = () => {
+        if (location.pathname.startsWith('/driver/chat')) {
+            return 'chat';
+        }
+
         switch (location.pathname) {
             case '/driver/home':
                 return 'active';
@@ -46,6 +56,9 @@ const DriverBottomNav = () => {
             case 'profile':
                 navigate('/driver/profile');
                 break;
+            case 'chat':
+                navigate('/driver/chat');
+                break;
         }
     };
 
@@ -55,6 +68,15 @@ const DriverBottomNav = () => {
         { label: 'Active', value: 'active', icon: <ElectricBoltOutlined /> },
         { label: 'Past', value: 'past', icon: <HistoryOutlined /> },
         { label: 'Map', value: 'map', icon: <MapOutlined /> },
+        {
+            label: 'Messages',
+            value: 'chat',
+            icon: (
+                <Badge badgeContent={unreadCount} color="error" max={99} invisible={unreadCount === 0}>
+                    <ChatBubbleOutline />
+                </Badge>
+            ),
+        },
         { label: 'Profile', value: 'profile', icon: <PersonOutlined /> },
     ];
 
@@ -90,6 +112,10 @@ const DriverBottomNav = () => {
                                 '& .MuiBottomNavigationAction-label': {
                                     fontSize: '0.75rem',
                                     marginTop: '4px',
+                                },
+                                '& .MuiBadge-badge': {
+                                    fontWeight: 700,
+                                    fontSize: '0.65rem',
                                 },
                             }}
                         />

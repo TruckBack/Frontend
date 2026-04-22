@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
     Box,
+    Badge,
     BottomNavigation,
     BottomNavigationAction,
     useTheme,
@@ -10,14 +11,23 @@ import {
     Add,
     AssignmentOutlined,
     PersonOutline,
+    ChatBubbleOutline,
 } from '@mui/icons-material';
+import { useAuth } from '../contexts/AuthContext';
+import { chatService } from '../services/chat';
 
 const CustomerBottomNav = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const theme = useTheme();
+    const { user } = useAuth();
+    const unreadCount = user ? chatService.getUnreadCount('customer', user.id) : 0;
 
     const getValue = () => {
+        if (location.pathname.startsWith('/customer/chat')) {
+            return 'chat';
+        }
+
         switch (location.pathname) {
             case '/customer/home':
                 return 'home';
@@ -46,6 +56,9 @@ const CustomerBottomNav = () => {
             case 'profile':
                 navigate('/customer/profile');
                 break;
+            case 'chat':
+                navigate('/customer/chat');
+                break;
         }
     };
 
@@ -56,6 +69,15 @@ const CustomerBottomNav = () => {
         { label: 'Home', value: 'home', icon: <HomeOutlined /> },
         { label: 'New Order', value: 'new-order', icon: <Add /> },
         { label: 'My Orders', value: 'orders', icon: <AssignmentOutlined /> },
+        {
+            label: 'Messages',
+            value: 'chat',
+            icon: (
+                <Badge badgeContent={unreadCount} color="error" max={99} invisible={unreadCount === 0}>
+                    <ChatBubbleOutline />
+                </Badge>
+            ),
+        },
         { label: 'Profile', value: 'profile', icon: <PersonOutline /> },
     ];
 
@@ -93,6 +115,10 @@ const CustomerBottomNav = () => {
                                 '& .MuiBottomNavigationAction-label': {
                                     fontSize: '0.75rem',
                                     marginTop: '4px',
+                                },
+                                '& .MuiBadge-badge': {
+                                    fontWeight: 700,
+                                    fontSize: '0.65rem',
                                 },
                             }}
                         />
@@ -152,6 +178,10 @@ const CustomerBottomNav = () => {
                                 },
                                 '& .MuiBottomNavigationAction-label': {
                                     display: 'none',
+                                },
+                                '& .MuiBadge-badge': {
+                                    fontWeight: 700,
+                                    fontSize: '0.65rem',
                                 },
                             }}
                         />

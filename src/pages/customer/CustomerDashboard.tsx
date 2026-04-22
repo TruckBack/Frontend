@@ -12,8 +12,11 @@ import {
     Equalizer,
     MonetizationOnOutlined,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 const CustomerDashboard = () => {
+    const navigate = useNavigate();
+
     const features = [
         {
             title: 'Fast Delivery',
@@ -81,6 +84,7 @@ const CustomerDashboard = () => {
                         </Stack>
                         <IconButton
                             aria-label="new delivery"
+                            onClick={() => navigate('/customer/new-order')}
                             sx={{
                                 bgcolor: 'rgba(255,255,255,0.2)',
                                 color: 'common.white',
