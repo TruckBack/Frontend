@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import {
     HomeOutlined,
-    Add,
+    AddCircleOutline,
     AssignmentOutlined,
     PersonOutline,
     ChatBubbleOutline,
@@ -67,7 +67,7 @@ const CustomerBottomNav = () => {
 
     const navActions = [
         { label: 'Home', value: 'home', icon: <HomeOutlined /> },
-        { label: 'New Order', value: 'new-order', icon: <Add /> },
+        { label: 'New Order', value: 'new-order', icon: <AddCircleOutline /> },
         { label: 'My Orders', value: 'orders', icon: <AssignmentOutlined /> },
         {
             label: 'Messages',
@@ -115,6 +115,7 @@ const CustomerBottomNav = () => {
                                 '& .MuiBottomNavigationAction-label': {
                                     fontSize: '0.75rem',
                                     marginTop: '4px',
+                                    whiteSpace: 'nowrap',
                                 },
                                 '& .MuiBadge-badge': {
                                     fontWeight: 700,
