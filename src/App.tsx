@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider as MuiThemeProvider, CssBaseline } from '@mui/material';
-import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { ThemeProvider, useAppTheme } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './pages/auth/Login';
 import DriverHome from './pages/driver/DriverHome';
@@ -68,7 +68,7 @@ const RoleRoute = ({
 };
 
 const AppContent = () => {
-  const { theme } = useTheme();
+  const { theme } = useAppTheme();
 
   return (
     <MuiThemeProvider theme={theme}>

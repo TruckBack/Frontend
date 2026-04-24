@@ -1,11 +1,11 @@
-import { useState } from 'react';
 import {
     Box,
-    Button,
     Stack,
-    Typography,
 } from '@mui/material';
 import DeliveryCard, { type Delivery } from '../../components/driver/DeliveryCard';
+import PageHeader from '../../components/shared/PageHeader';
+import DeliveryFilters from '../../components/driver/deliveries/DeliveryFilters';
+import { useDeliveryFiltering } from '../../hooks/useDeliveryFiltering';
 
 const mockDeliveries: Delivery[] = [
     {
@@ -35,20 +35,12 @@ const mockDeliveries: Delivery[] = [
 ];
 
 const ActiveDeliveries = () => {
-    const [selectedFilter, setSelectedFilter] = useState<'all' | 'accepted' | 'in-progress'>('all');
-
-    const allCount = mockDeliveries.length;
-    const acceptedCount = mockDeliveries.filter((delivery) => delivery.status === 'accepted').length;
-    const inProgressCount = mockDeliveries.filter((delivery) => delivery.status === 'in-progress').length;
-    const filterOptions: Array<{ value: 'all' | 'accepted' | 'in-progress'; label: string }> = [
-        { value: 'all', label: `All (${allCount})` },
-        { value: 'accepted', label: `Accepted (${acceptedCount})` },
-        { value: 'in-progress', label: `In Progress (${inProgressCount})` },
-    ];
-
-    const filteredDeliveries = selectedFilter === 'all'
-        ? mockDeliveries
-        : mockDeliveries.filter((delivery) => delivery.status === selectedFilter);
+    const {
+        selectedFilter,
+        setSelectedFilter,
+        counts,
+        filteredDeliveries,
+    } = useDeliveryFiltering(mockDeliveries);
 
     return (
         <Box
@@ -65,41 +57,18 @@ const ActiveDeliveries = () => {
                 overflow: 'hidden',
             }}
         >
-                <Stack sx={{ mb: 3 }}>
-                    <Typography variant="h6" fontWeight={600}>
-                        Active Deliveries
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        Manage your current delivery jobs
-                    </Typography>
-                </Stack>
+                <PageHeader
+                    title="Active Deliveries"
+                    subtitle="Manage your current delivery jobs"
+                />
 
-                <Stack
-                    direction="row"
-                    spacing={1}
-                    sx={{
-                        mb: 3,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        flexWrap: 'wrap',
-                    }}
-                >
-                    {filterOptions.map((filter) => (
-                        <Button
-                            key={filter.value}
-                            variant={selectedFilter === filter.value ? 'contained' : 'outlined'}
-                            size="small"
-                            onClick={() => setSelectedFilter(filter.value)}
-                            sx={{
-                                textTransform: 'none',
-                                flexShrink: 0,
-                                minWidth: { xs: 108, sm: 126 },
-                            }}
-                        >
-                            {filter.label}
-                        </Button>
-                    ))}
-                </Stack>
+                <DeliveryFilters
+                    selectedFilter={selectedFilter}
+                    allCount={counts.total}
+                    acceptedCount={counts.accepted}
+                    inProgressCount={counts.inProgress}
+                    onSelectFilter={setSelectedFilter}
+                />
 
                 <Box
                     sx={{

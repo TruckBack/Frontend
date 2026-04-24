@@ -12,11 +12,16 @@ import {
     Phone,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import {
+    getDriverDeliveryStatusColor,
+    getDriverDeliveryStatusLabel,
+    type DriverDeliveryStatus,
+} from '../../utils/statusUtils';
 
 export interface Delivery {
     id: string;
     driverName: string;
-    status: 'accepted' | 'in-progress' | 'completed';
+    status: DriverDeliveryStatus;
     price: number;
     category: string;
     weight: string;
@@ -33,19 +38,7 @@ interface DeliveryCardProps {
 const DeliveryCard = ({ delivery }: DeliveryCardProps) => {
     const theme = useTheme();
     const navigate = useNavigate();
-
-    const getStatusColor = (status: Delivery['status']) => {
-        switch (status) {
-            case 'accepted':
-                return theme.palette.warning.main;
-            case 'in-progress':
-                return theme.palette.primary.main;
-            default:
-                return theme.palette.grey[400];
-        }
-    };
-
-    const statusColor = getStatusColor(delivery.status);
+    const statusColor = getDriverDeliveryStatusColor(delivery.status, theme.palette);
 
     return (
         <Card
@@ -66,7 +59,7 @@ const DeliveryCard = ({ delivery }: DeliveryCardProps) => {
                         {delivery.driverName}
                     </Typography>
                     <Chip
-                        label={delivery.status === 'in-progress' ? 'In Progress' : delivery.status.charAt(0).toUpperCase() + delivery.status.slice(1)}
+                        label={getDriverDeliveryStatusLabel(delivery.status)}
                         size="small"
                         variant="outlined"
                         sx={{
@@ -168,6 +161,7 @@ const DeliveryCard = ({ delivery }: DeliveryCardProps) => {
                     variant="contained"
                     color="secondary"
                     size="small"
+                    disabled={delivery.status === 'completed'}
                     onClick={() => navigate(`/driver/chat/${delivery.id}`, {
                         state: {
                             partnerName: delivery.driverName,

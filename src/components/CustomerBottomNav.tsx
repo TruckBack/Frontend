@@ -1,11 +1,4 @@
-import { useLocation, useNavigate } from 'react-router-dom';
-import {
-    Box,
-    Badge,
-    BottomNavigation,
-    BottomNavigationAction,
-    useTheme,
-} from '@mui/material';
+import { Badge, useTheme } from '@mui/material';
 import {
     HomeOutlined,
     Add,
@@ -14,63 +7,38 @@ import {
     ChatBubbleOutline,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
-import { chatService } from '../services/chat';
+import RoleBottomNav, { type RoleNavAction } from './shared/RoleBottomNav';
+import { useRoleNavigation } from '../hooks/useRoleNavigation';
+import { ROUTES } from '../constants/routes';
+import { useUnreadCount } from '../hooks/useUnreadCount';
 
-const CustomerBottomNav = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
+export default function CustomerBottomNav() {
     const theme = useTheme();
     const { user } = useAuth();
-    const unreadCount = user ? chatService.getUnreadCount('customer', user.id) : 0;
+    const unreadCount = useUnreadCount('customer', user?.id);
 
-    const getValue = () => {
-        if (location.pathname.startsWith('/customer/chat')) {
-            return 'chat';
-        }
-
-        switch (location.pathname) {
-            case '/customer/home':
-                return 'home';
-            case '/customer/new-order':
-                return 'new-order';
-            case '/customer/orders':
-                return 'orders';
-            case '/customer/profile':
-                return 'profile';
-            default:
-                return 'home';
-        }
+    const routeMap = {
+        home: ROUTES.customer.home,
+        'new-order': ROUTES.customer.newOrder,
+        orders: ROUTES.customer.orders,
+        chat: ROUTES.customer.chat,
+        profile: ROUTES.customer.profile,
     };
 
-    const handleChange = (newValue: string) => {
-        switch (newValue) {
-            case 'home':
-                navigate('/customer/home');
-                break;
-            case 'new-order':
-                navigate('/customer/new-order');
-                break;
-            case 'orders':
-                navigate('/customer/orders');
-                break;
-            case 'profile':
-                navigate('/customer/profile');
-                break;
-            case 'chat':
-                navigate('/customer/chat');
-                break;
-        }
-    };
+    const { currentValue, handleChange } = useRoleNavigation({
+        routeMap,
+        defaultValue: 'home',
+        chatPath: ROUTES.customer.chat,
+        chatValue: 'chat',
+    });
 
-    const currentValue = getValue();
     const navSurface = theme.palette.mode === 'dark' ? theme.palette.grey[900] : theme.palette.grey[200];
 
-    const navActions = [
-        { label: 'Home', value: 'home', icon: <HomeOutlined /> },
-        { label: 'New Order', value: 'new-order', icon: <Add /> },
-        { label: 'My Orders', value: 'orders', icon: <AssignmentOutlined /> },
+    const navActions: RoleNavAction[] = [
+        { value: 'home', icon: <HomeOutlined /> },
+        { value: 'new-order', icon: <Add /> },
+        { value: 'orders', icon: <AssignmentOutlined /> },
         {
-            label: 'Messages',
             value: 'chat',
             icon: (
                 <Badge badgeContent={unreadCount} color="error" max={99} invisible={unreadCount === 0}>
@@ -78,118 +46,16 @@ const CustomerBottomNav = () => {
                 </Badge>
             ),
         },
-        { label: 'Profile', value: 'profile', icon: <PersonOutline /> },
+        { value: 'profile', icon: <PersonOutline /> },
     ];
 
     return (
-        <>
-            <Box
-                sx={{
-                    position: 'fixed',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    display: { xs: 'block', md: 'none' },
-                    zIndex: 1100,
-                    borderTop: `1px solid ${theme.palette.divider}`,
-                    backgroundColor: navSurface,
-                    pb: 'env(safe-area-inset-bottom)',
-                }}
-            >
-                <BottomNavigation
-                    value={currentValue}
-                    onChange={(_, newValue) => handleChange(newValue)}
-                    sx={{
-                        height: 56,
-                        backgroundColor: navSurface,
-                    }}
-                >
-                    {navActions.map((action) => (
-                        <BottomNavigationAction
-                            key={action.value}
-                            label={action.label}
-                            value={action.value}
-                            icon={action.icon}
-                            sx={{
-                                color: currentValue === action.value ? theme.palette.primary.main : 'inherit',
-                                '& .MuiBottomNavigationAction-label': {
-                                    fontSize: '0.75rem',
-                                    marginTop: '4px',
-                                },
-                                '& .MuiBadge-badge': {
-                                    fontWeight: 700,
-                                    fontSize: '0.65rem',
-                                },
-                            }}
-                        />
-                    ))}
-                </BottomNavigation>
-            </Box>
-
-            <Box
-                sx={{
-                    display: { xs: 'none', md: 'block' },
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    bottom: 0,
-                    zIndex: 1200,
-                    width: 76,
-                    borderRight: `1px solid ${theme.palette.divider}`,
-                    backgroundColor: navSurface,
-                }}
-            >
-                <BottomNavigation
-                    value={currentValue}
-                    onChange={(_, newValue) => handleChange(newValue)}
-                    sx={{
-                        height: '100%',
-                        minHeight: '100dvh',
-                        width: '100%',
-                        flexDirection: 'column',
-                        justifyContent: 'flex-start',
-                        alignItems: 'center',
-                        py: 1.25,
-                        gap: 1,
-                        backgroundColor: navSurface,
-                    }}
-                >
-                    {navActions.map((action) => (
-                        <BottomNavigationAction
-                            key={action.value}
-                            label={action.label}
-                            value={action.value}
-                            icon={action.icon}
-                            sx={{
-                                flex: '0 0 auto',
-                                width: 44,
-                                height: 44,
-                                borderRadius: '50%',
-                                minWidth: 0,
-                                p: 0,
-                                color: currentValue === action.value ? theme.palette.common.white : theme.palette.text.secondary,
-                                bgcolor: currentValue === action.value ? theme.palette.common.black : 'transparent',
-                                transition: 'all 0.2s ease',
-                                '& .MuiSvgIcon-root': {
-                                    fontSize: 24,
-                                },
-                                '&:hover': {
-                                    bgcolor: currentValue === action.value ? theme.palette.common.black : theme.palette.action.selected,
-                                },
-                                '& .MuiBottomNavigationAction-label': {
-                                    display: 'none',
-                                },
-                                '& .MuiBadge-badge': {
-                                    fontWeight: 700,
-                                    fontSize: '0.65rem',
-                                },
-                            }}
-                        />
-                    ))}
-                </BottomNavigation>
-            </Box>
-        </>
+        <RoleBottomNav
+            actions={navActions}
+            currentValue={currentValue}
+            onChange={handleChange}
+            navSurface={navSurface}
+            mobileSafeArea
+        />
     );
-};
-
-export default CustomerBottomNav;
+}

@@ -119,6 +119,16 @@ const chatStore: ChatConversation[] = [
     },
 ];
 
+type ChatStoreListener = () => void;
+
+const listeners = new Set<ChatStoreListener>();
+let chatStoreVersion = 0;
+
+const notifyChatStoreChanged = () => {
+    chatStoreVersion += 1;
+    listeners.forEach((listener) => listener());
+};
+
 const cloneMessage = (message: ChatMessage): ChatMessage => ({
     ...message,
     readBy: { ...message.readBy },
@@ -177,6 +187,18 @@ const createConversation = (role: AccountRole, userId: string, orderId: string, 
 };
 
 export const chatService = {
+    getStoreVersion() {
+        return chatStoreVersion;
+    },
+
+    subscribe(listener: ChatStoreListener) {
+        listeners.add(listener);
+
+        return () => {
+            listeners.delete(listener);
+        };
+    },
+
     ensureConversation(role: AccountRole, userId: string, orderId: string, seed: ConversationSeed = {}) {
         const existingConversation = chatStore.find((conversation) => conversation.orderId === orderId);
 
@@ -186,6 +208,7 @@ export const chatService = {
 
         const conversation = createConversation(role, userId, orderId, seed);
         chatStore.unshift(conversation);
+        notifyChatStoreChanged();
 
         return cloneConversation(conversation);
     },
@@ -230,7 +253,12 @@ export const chatService = {
             message.readBy[role] = true;
         });
 
+        const previousUnreadCount = conversation.unreadCount[role];
         refreshConversationState(conversation);
+
+        if (previousUnreadCount !== conversation.unreadCount[role]) {
+            notifyChatStoreChanged();
+        }
 
         return cloneConversation(conversation);
     },
@@ -268,6 +296,7 @@ export const chatService = {
 
         conversation.messages.push(message);
         refreshConversationState(conversation);
+        notifyChatStoreChanged();
 
         return cloneConversation(conversation);
     },

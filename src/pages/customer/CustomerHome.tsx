@@ -1,29 +1,11 @@
-import { Box } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 import CustomerBottomNav from '../../components/CustomerBottomNav';
+import RoleShell from '../../components/shared/RoleShell';
 
-const CustomerHome = () => {
+export default function CustomerHome() {
     return (
-        <Box
-            sx={{
-                minHeight: '100dvh',
-                display: 'flex',
-                flexDirection: 'column',
-            }}
-        >
-            <CustomerBottomNav />
-            <Box
-                sx={{
-                    flex: 1,
-                    minWidth: 0,
-                    ml: { xs: 0, md: '76px' },
-                    pb: { xs: 'calc(56px + env(safe-area-inset-bottom))', md: 0 },
-                }}
-            >
-                <Outlet />
-            </Box>
-        </Box>
+        <RoleShell navigation={<CustomerBottomNav />} mobileBottomInset>
+            <Outlet />
+        </RoleShell>
     );
-};
-
-export default CustomerHome;
+}
