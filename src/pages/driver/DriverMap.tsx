@@ -5,6 +5,7 @@ import {
     useTheme,
 } from '@mui/material';
 import { MapOutlined } from '@mui/icons-material';
+import PageHeader from '../../components/shared/PageHeader';
 
 const DriverMap = () => {
     const theme = useTheme();
@@ -18,47 +19,38 @@ const DriverMap = () => {
                 px: { xs: 2, sm: 3 },
                 py: { xs: 2, sm: 3 },
                 pb: { xs: 10, md: 3 },
-                minHeight: { xs: 'auto', sm: 'calc(100dvh - 120px)' },
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
             }}
         >
-                <Stack sx={{ mb: 3, textAlign: 'center' }}>
-                    <Typography variant="h6" fontWeight={600}>
-                        Delivery Map
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        View your active deliveries on the map
-                    </Typography>
-                </Stack>
+            <PageHeader
+                title="Delivery Map"
+                subtitle="View your active deliveries on the map"
+            />
 
-                <Box
+            <Box
+                sx={{
+                    width: '100%',
+                    maxWidth: 600,
+                    aspectRatio: '1',
+                    borderRadius: 2,
+                    backgroundColor: theme.palette.action.hover,
+                    border: `2px dashed ${theme.palette.divider}`,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: 2,
+                }}
+            >
+                <MapOutlined
                     sx={{
-                        width: '100%',
-                        maxWidth: 600,
-                        aspectRatio: '1',
-                        borderRadius: 2,
-                        backgroundColor: theme.palette.action.hover,
-                        border: `2px dashed ${theme.palette.divider}`,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        gap: 2,
+                        fontSize: 64,
+                        color: theme.palette.text.secondary,
                     }}
-                >
-                    <MapOutlined
-                        sx={{
-                            fontSize: 64,
-                            color: theme.palette.text.secondary,
-                        }}
-                    />
-                    <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ px: 2 }}>
-                        Map integration coming soon
-                    </Typography>
-                </Box>
+                />
+                <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ px: 2 }}>
+                    Map integration coming soon
+                </Typography>
+            </Box>
         </Box>
     );
 };

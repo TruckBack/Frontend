@@ -9,7 +9,6 @@ import {
 } from '@mui/material';
 import {
     FavoriteBorder,
-    Phone,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -172,14 +171,7 @@ const DeliveryCard = ({ delivery }: DeliveryCardProps) => {
                 >
                     Chat
                 </Button>
-                <Button
-                    variant="outlined"
-                    size="small"
-                    startIcon={<Phone sx={{ fontSize: 18 }} />}
-                    sx={{ minWidth: 'auto', px: 1 }}
-                >
-                    Call
-                </Button>
+
             </Stack>
         </Card>
     );

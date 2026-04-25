@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import { PersonOutlined, LogoutOutlined } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
+import PageHeader from '../../components/shared/PageHeader';
 
 const DriverProfile = () => {
     const theme = useTheme();
@@ -25,124 +26,121 @@ const DriverProfile = () => {
                 pb: { xs: 10, md: 3 },
             }}
         >
-                <Stack sx={{ mb: 3 }}>
-                    <Typography variant="h6" fontWeight={600}>
-                        Profile
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        Manage your account settings
-                    </Typography>
-                </Stack>
+            <PageHeader
+                title="Profile"
+                subtitle="Manage your account settings"
+            />
 
-                <Stack
-                    alignItems="center"
+
+            <Stack
+                alignItems="center"
+                sx={{
+                    mb: 3,
+                    p: 3,
+                    borderRadius: 2,
+                    backgroundColor: theme.palette.action.hover,
+                }}
+            >
+                <Box
                     sx={{
-                        mb: 3,
-                        p: 3,
-                        borderRadius: 2,
-                        backgroundColor: theme.palette.action.hover,
+                        width: 80,
+                        height: 80,
+                        borderRadius: '50%',
+                        backgroundColor: theme.palette.primary.main,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        mb: 2,
                     }}
                 >
-                    <Box
+                    <PersonOutlined
                         sx={{
-                            width: 80,
-                            height: 80,
-                            borderRadius: '50%',
-                            backgroundColor: theme.palette.primary.main,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            mb: 2,
+                            fontSize: 48,
+                            color: 'white',
                         }}
-                    >
-                        <PersonOutlined
-                            sx={{
-                                fontSize: 48,
-                                color: 'white',
-                            }}
+                    />
+                </Box>
+                <Typography variant="h6" fontWeight={600}>
+                    {user?.name ?? 'Driver'}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                    {user?.email}
+                </Typography>
+            </Stack>
+
+            <Stack spacing={2} sx={{ mb: 3 }}>
+                <Card sx={{ p: 2, borderRadius: 2 }}>
+                    <Stack spacing={2}>
+                        <TextField
+                            label="Full Name"
+                            value={user?.name ?? ''}
+                            fullWidth
+                            disabled
+                            size="small"
+                            variant="outlined"
                         />
-                    </Box>
-                    <Typography variant="h6" fontWeight={600}>
-                        {user?.name ?? 'Driver'}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        {user?.email}
-                    </Typography>
-                </Stack>
+                        <TextField
+                            label="Email"
+                            type="email"
+                            value={user?.email ?? ''}
+                            fullWidth
+                            disabled
+                            size="small"
+                            variant="outlined"
+                        />
+                    </Stack>
+                </Card>
 
-                <Stack spacing={2} sx={{ mb: 3 }}>
-                    <Card sx={{ p: 2, borderRadius: 2 }}>
-                        <Stack spacing={2}>
-                            <TextField
-                                label="Full Name"
-                                value={user?.name ?? ''}
-                                fullWidth
-                                disabled
-                                size="small"
-                                variant="outlined"
-                            />
-                            <TextField
-                                label="Email"
-                                type="email"
-                                value={user?.email ?? ''}
-                                fullWidth
-                                disabled
-                                size="small"
-                                variant="outlined"
-                            />
+                <Card sx={{ p: 2, borderRadius: 2 }}>
+                    <Stack spacing={1}>
+                        <Typography variant="subtitle2" fontWeight={600}>
+                            Delivery Statistics
+                        </Typography>
+                        <Stack direction="row" spacing={2}>
+                            <Box sx={{ flex: 1 }}>
+                                <Typography variant="caption" color="text.secondary">
+                                    Completed
+                                </Typography>
+                                <Typography variant="h6" fontWeight={600}>
+                                    24
+                                </Typography>
+                            </Box>
+                            <Box sx={{ flex: 1 }}>
+                                <Typography variant="caption" color="text.secondary">
+                                    Rating
+                                </Typography>
+                                <Stack direction="row" spacing={0.25}>
+                                    {Array.from({ length: 5 }).map((_, i) => (
+                                        <Box
+                                            key={i}
+                                            sx={{
+                                                color: i < 4 ? theme.palette.warning.main : theme.palette.action.disabled,
+                                                fontSize: '1rem',
+                                            }}
+                                        >
+                                            ★
+                                        </Box>
+                                    ))}
+                                </Stack>
+                            </Box>
                         </Stack>
-                    </Card>
+                    </Stack>
+                </Card>
+            </Stack>
 
-                    <Card sx={{ p: 2, borderRadius: 2 }}>
-                        <Stack spacing={1}>
-                            <Typography variant="subtitle2" fontWeight={600}>
-                                Delivery Statistics
-                            </Typography>
-                            <Stack direction="row" spacing={2}>
-                                <Box sx={{ flex: 1 }}>
-                                    <Typography variant="caption" color="text.secondary">
-                                        Completed
-                                    </Typography>
-                                    <Typography variant="h6" fontWeight={600}>
-                                        24
-                                    </Typography>
-                                </Box>
-                                <Box sx={{ flex: 1 }}>
-                                    <Typography variant="caption" color="text.secondary">
-                                        Rating
-                                    </Typography>
-                                    <Stack direction="row" spacing={0.25}>
-                                        {Array.from({ length: 5 }).map((_, i) => (
-                                            <Box
-                                                key={i}
-                                                sx={{
-                                                    color: i < 4 ? theme.palette.warning.main : theme.palette.action.disabled,
-                                                    fontSize: '1rem',
-                                                }}
-                                            >
-                                                ★
-                                            </Box>
-                                        ))}
-                                    </Stack>
-                                </Box>
-                            </Stack>
-                        </Stack>
-                    </Card>
-                </Stack>
-
-                <Button
-                    variant="contained"
-                    color="error"
-                    fullWidth
-                    startIcon={<LogoutOutlined />}
-                    onClick={logout}
-                    sx={{
-                        py: 1.5,
-                        borderRadius: 1,
-                    }}
-                >
-                    Logout
-                </Button>
+            <Button
+                variant="contained"
+                color="error"
+                fullWidth
+                startIcon={<LogoutOutlined />}
+                onClick={logout}
+                sx={{
+                    py: 1.5,
+                    borderRadius: 1,
+                }}
+            >
+                Logout
+            </Button>
         </Box>
     );
 };

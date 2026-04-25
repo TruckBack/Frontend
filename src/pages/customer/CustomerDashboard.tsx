@@ -60,7 +60,6 @@ export default function CustomerDashboard() {
                     title="Welcome Back!"
                     subtitle="Request a delivery in minutes"
                     titleVariant="h4"
-                    titleWeight={700}
                 />
 
                 <DeliveryActionCard onCreateOrder={() => navigate('/customer/new-order')} />

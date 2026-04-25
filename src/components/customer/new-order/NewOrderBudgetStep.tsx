@@ -1,7 +1,23 @@
 import { MonetizationOnOutlined } from '@mui/icons-material';
 import { Box, Card, Stack, TextField, Typography } from '@mui/material';
+import AIInsightsCard from './AIInsightsCard';
+import type { NewOrderFieldErrors, NewOrderFormData } from '../../../hooks/useNewOrderFlow';
 
-export default function NewOrderBudgetStep() {
+interface NewOrderBudgetStepProps {
+    formData: NewOrderFormData;
+    fieldErrors: NewOrderFieldErrors;
+    onFieldChange: <K extends keyof NewOrderFormData>(field: K, value: NewOrderFormData[K]) => void;
+    budgetInsight: string;
+    isGeneratingBudgetInsight: boolean;
+}
+
+export default function NewOrderBudgetStep({
+    formData,
+    fieldErrors,
+    onFieldChange,
+    budgetInsight,
+    isGeneratingBudgetInsight,
+}: NewOrderBudgetStepProps) {
     return (
         <Card variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
             <Stack spacing={2}>
@@ -16,10 +32,24 @@ export default function NewOrderBudgetStep() {
                     <Typography variant="subtitle2" fontWeight={600}>
                         Your Budget ($)
                     </Typography>
-                    <TextField size="small" fullWidth placeholder="Enter your budget" type="number" />
-                    <Typography variant="caption" color="text.secondary">
-                        Suggested: $45.00
-                    </Typography>
+                    <TextField
+                        size="small"
+                        fullWidth
+                        required
+                        placeholder="Enter your budget"
+                        type="number"
+                        sx={{ mb: 3 }}
+                        value={formData.budget}
+                        onChange={(event) => onFieldChange('budget', event.target.value)}
+                        error={Boolean(fieldErrors.budget)}
+                        helperText={fieldErrors.budget}
+                    />
+                    <AIInsightsCard
+                        isGenerating={isGeneratingBudgetInsight}
+                        title="AI Budget Insight"
+                        loadingText="Estimating suggested price..."
+                        insight={budgetInsight}
+                    />
                 </Stack>
 
                 <Card

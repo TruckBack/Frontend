@@ -1,7 +1,7 @@
 import { Button } from "@mui/material";
 import { Google as GoogleIcon, Facebook as FacebookIcon } from "@mui/icons-material";
 import { titleCase } from "title-case";
-import type { AccountRole } from "../../services/types";
+import type { AccountRole } from "../services/types";
 
 
 interface OAuthButtonProps {

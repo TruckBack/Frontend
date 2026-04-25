@@ -7,9 +7,9 @@ interface PageHeaderProps {
     titleWeight?: number;
 }
 
-export default function PageHeader({ title, subtitle, titleVariant = 'h6', titleWeight = 600 }: PageHeaderProps) {
+export default function PageHeader({ title, subtitle, titleVariant = 'h5', titleWeight = 800 }: PageHeaderProps) {
     return (
-        <Stack spacing={0.5}>
+        <Stack spacing={0.5} mb={3}>
             <Typography variant={titleVariant} fontWeight={titleWeight}>
                 {title}
             </Typography>

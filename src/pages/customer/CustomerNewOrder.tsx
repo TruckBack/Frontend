@@ -2,7 +2,6 @@ import {
     Box,
     Button,
     Stack,
-    Typography,
     useTheme,
 } from '@mui/material';
 import OrderStepProgress from '../../components/customer/new-order/OrderStepProgress';
@@ -12,6 +11,7 @@ import NewOrderBudgetStep from '../../components/customer/new-order/NewOrderBudg
 import NewOrderSummaryStep from '../../components/customer/new-order/NewOrderSummaryStep';
 import { ORDER_STEPS } from '../../components/customer/new-order/orderSteps';
 import { useNewOrderFlow } from '../../hooks/useNewOrderFlow';
+import PageHeader from '../../components/shared/PageHeader';
 
 const CustomerNewOrder = () => {
     const theme = useTheme();
@@ -19,11 +19,22 @@ const CustomerNewOrder = () => {
         imageInputRef,
         currentStep,
         attachmentName,
+        formData,
+        fieldErrors,
+        hasTouchedDescription,
+        hasBlurredDescription,
+        packageInsight,
+        isGeneratingPackageInsight,
+        budgetInsight,
+        isGeneratingBudgetInsight,
+        setFormField,
+        handlePackageDescriptionChange,
+        handlePackageDescriptionBlur,
         handleContinue,
         handleBack,
+        handleStepChange,
         handleImageAttachmentClick,
         handleImageAttachmentChange,
-        setCurrentStep,
     } = useNewOrderFlow();
 
     return (
@@ -50,18 +61,17 @@ const CustomerNewOrder = () => {
                 }}
             >
                 <Stack spacing={0.5}>
-                    <Typography variant="h6" fontWeight={600}>
-                        Request a Delivery
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        Fill in the details for your delivery order
-                    </Typography>
+                    <PageHeader
+                        title="Request a Delivery"
+                        subtitle="Fill in the details for your delivery order"
+                    />
+
                 </Stack>
 
                 <OrderStepProgress
                     steps={ORDER_STEPS}
                     currentStep={currentStep}
-                    onStepChange={setCurrentStep}
+                    onStepChange={handleStepChange}
                 />
 
             </Stack>
@@ -76,20 +86,48 @@ const CustomerNewOrder = () => {
                 }}
             >
                 <Stack spacing={2.5}>
-                    {currentStep === 1 && <NewOrderLocationStep />}
+                    {currentStep === 1 && (
+                        <NewOrderLocationStep
+                            formData={formData}
+                            fieldErrors={fieldErrors}
+                            onFieldChange={setFormField}
+                        />
+                    )}
 
                     {currentStep === 2 && (
                         <NewOrderPackageStep
                             imageInputRef={imageInputRef}
                             attachmentName={attachmentName}
+                            formData={formData}
+                            fieldErrors={fieldErrors}
+                            onFieldChange={setFormField}
+                            hasTouchedDescription={hasTouchedDescription}
+                            hasBlurredDescription={hasBlurredDescription}
+                            packageInsight={packageInsight}
+                            isGeneratingPackageInsight={isGeneratingPackageInsight}
+                            onDescriptionChange={handlePackageDescriptionChange}
+                            onDescriptionBlur={handlePackageDescriptionBlur}
                             onAttachmentClick={handleImageAttachmentClick}
                             onAttachmentChange={handleImageAttachmentChange}
                         />
                     )}
 
-                    {currentStep === 3 && <NewOrderBudgetStep />}
+                    {currentStep === 3 && (
+                        <NewOrderBudgetStep
+                            formData={formData}
+                            fieldErrors={fieldErrors}
+                            onFieldChange={setFormField}
+                            budgetInsight={budgetInsight}
+                            isGeneratingBudgetInsight={isGeneratingBudgetInsight}
+                        />
+                    )}
 
-                    {currentStep === 4 && <NewOrderSummaryStep />}
+                    {currentStep === 4 && (
+                        <NewOrderSummaryStep
+                            formData={formData}
+                            attachmentName={attachmentName}
+                        />
+                    )}
 
                     <Stack direction="row" spacing={1.25}>
                         {currentStep > 1 && (

@@ -168,7 +168,7 @@ export default function ChatThreadPanel({
                     <TextField
                         fullWidth
                         multiline
-                        minRows={2}
+                        minRows={1}
                         maxRows={4}
                         placeholder="Write a message"
                         value={draft}

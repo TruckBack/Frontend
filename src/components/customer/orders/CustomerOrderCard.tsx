@@ -116,6 +116,7 @@ export default function CustomerOrderCard({ order, onOpenChat }: CustomerOrderCa
                         variant="contained"
                         size="small"
                         sx={{ flex: 1.8 }}
+                        disabled={order.driverName === 'Not assigned' || order.status === 'delivered'}
                     >
                         Track Delivery
                     </Button>
