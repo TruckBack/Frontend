@@ -1,6 +1,6 @@
 import { MonetizationOnOutlined } from '@mui/icons-material';
 import { Box, Card, Stack, TextField, Typography } from '@mui/material';
-import AIInsightsCard from './AIInsightsCard';
+import AIInsightsCard from '../../shared/AIInsightsCard';
 import type { NewOrderFieldErrors, NewOrderFormData } from '../../../hooks/useNewOrderFlow';
 
 interface NewOrderBudgetStepProps {

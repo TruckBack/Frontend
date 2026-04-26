@@ -1,7 +1,7 @@
 import type { ChangeEvent, RefObject } from 'react';
 import { ImageOutlined, Inventory2Outlined } from '@mui/icons-material';
 import { Button, Card, MenuItem, Stack, TextField, Typography } from '@mui/material';
-import AIInsightsCard from './AIInsightsCard';
+import AIInsightsCard from '../../shared/AIInsightsCard';
 import type { NewOrderFieldErrors, NewOrderFormData } from '../../../hooks/useNewOrderFlow';
 
 interface NewOrderPackageStepProps {

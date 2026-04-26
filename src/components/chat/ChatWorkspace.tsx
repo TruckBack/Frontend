@@ -52,6 +52,7 @@ const ChatWorkspace = ({ role, title, subtitle, basePath, emptyMessage }: ChatWo
     }, [chatStoreVersion, role, user]);
 
     const selectedOrderId = params.orderId ?? null;
+    const isMobileThreadView = !isDesktop && Boolean(selectedOrderId);
     const selectedConversation = useMemo(() => {
         if (!user || !selectedOrderId) {
             return null;
@@ -130,20 +131,28 @@ const ChatWorkspace = ({ role, title, subtitle, basePath, emptyMessage }: ChatWo
                 mx: 'auto',
                 px: { xs: 2, sm: 3 },
                 py: { xs: 2.5, sm: 3 },
+                minHeight: { xs: 'calc(100dvh - 56px - env(safe-area-inset-bottom))', md: '100dvh' },
+                display: 'flex',
+                flexDirection: 'column',
+                boxSizing: 'border-box',
             }}
         >
-            <Stack spacing={2}>
-                <ChatWorkspaceHeader
-                    unreadCount={unreadCount}
-                    showBackButton={location.pathname !== basePath}
-                    onBackToInbox={handleBackToInbox}
-                />
+            <Stack spacing={2} sx={{ flex: 1, minHeight: 0 }}>
+                {!isMobileThreadView ? (
+                    <ChatWorkspaceHeader
+                        unreadCount={unreadCount}
+                        showBackButton={location.pathname !== basePath}
+                        onBackToInbox={handleBackToInbox}
+                    />
+                ) : null}
 
                 <Box
                     sx={{
                         display: 'grid',
                         gridTemplateColumns: isDesktop ? '360px minmax(0, 1fr)' : '1fr',
                         gap: 2,
+                        flex: 1,
+                        minHeight: 0,
                     }}
                 >
                     {isDesktop || !selectedOrderId ? (

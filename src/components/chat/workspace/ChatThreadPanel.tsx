@@ -77,10 +77,11 @@ export default function ChatThreadPanel({
         <Paper
             variant="outlined"
             sx={{
-                borderRadius: 3,
+                borderRadius: { xs: 2, md: 3 },
                 display: 'flex',
                 flexDirection: 'column',
-                minHeight: { md: '72dvh' },
+                minHeight: 0,
+                height: '100%',
                 overflow: 'hidden',
             }}
         >

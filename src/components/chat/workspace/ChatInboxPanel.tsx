@@ -40,7 +40,10 @@ export default function ChatInboxPanel({
             sx={{
                 borderRadius: 3,
                 overflow: 'hidden',
-                minHeight: { md: '72dvh' },
+                minHeight: 0,
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
             }}
         >
             <Box sx={{ p: 2 }}>
@@ -55,7 +58,7 @@ export default function ChatInboxPanel({
             </Box>
             <Divider />
             {conversations.length > 0 ? (
-                <List disablePadding>
+                <List disablePadding sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
                     {conversations.map((conversation) => {
                         const unread = conversation.unreadCount[role];
 
