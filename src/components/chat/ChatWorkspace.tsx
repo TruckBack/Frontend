@@ -9,7 +9,6 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { chatService, type ChatConversationSummary } from '../../services/chat';
 import type { AccountRole } from '../../services/types';
-import ChatWorkspaceHeader from './workspace/ChatWorkspaceHeader';
 import ChatInboxPanel from './workspace/ChatInboxPanel';
 import ChatThreadPanel from './workspace/ChatThreadPanel';
 
@@ -35,7 +34,7 @@ const ChatWorkspace = ({ role, title, subtitle, basePath, emptyMessage }: ChatWo
     const location = useLocation();
     const params = useParams<{ orderId?: string }>();
     const { user } = useAuth();
-    const [draft, setDraft] = useState('');
+    const [draftsByOrderId, setDraftsByOrderId] = useState<Record<string, string>>({});
     const routeState = (location.state ?? {}) as ChatRouteState;
     const chatStoreVersion = useSyncExternalStore(
         chatService.subscribe,
@@ -52,7 +51,7 @@ const ChatWorkspace = ({ role, title, subtitle, basePath, emptyMessage }: ChatWo
     }, [chatStoreVersion, role, user]);
 
     const selectedOrderId = params.orderId ?? null;
-    const isMobileThreadView = !isDesktop && Boolean(selectedOrderId);
+    const draft = selectedOrderId ? draftsByOrderId[selectedOrderId] ?? '' : '';
     const selectedConversation = useMemo(() => {
         if (!user || !selectedOrderId) {
             return null;
@@ -82,7 +81,23 @@ const ChatWorkspace = ({ role, title, subtitle, basePath, emptyMessage }: ChatWo
         chatService.markConversationRead(role, user.id, selectedOrderId);
     }, [role, selectedOrderId, user]);
 
-    const unreadCount = user ? chatService.getUnreadCount(role, user.id) : 0;
+    useEffect(() => {
+        if (!selectedOrderId) {
+            return;
+        }
+
+        setDraftsByOrderId((previousDrafts) => {
+            if (Object.prototype.hasOwnProperty.call(previousDrafts, selectedOrderId)) {
+                return previousDrafts;
+            }
+
+            return {
+                ...previousDrafts,
+                [selectedOrderId]: '',
+            };
+        });
+    }, [selectedOrderId]);
+
     const recipientName = selectedConversation?.partnerName ?? routeState.partnerName ?? 'Recipient';
     const conversationTitle = selectedConversation?.orderTitle ?? routeState.orderTitle ?? 'Order';
 
@@ -116,7 +131,10 @@ const ChatWorkspace = ({ role, title, subtitle, basePath, emptyMessage }: ChatWo
             return;
         }
 
-        setDraft('');
+        setDraftsByOrderId((previousDrafts) => ({
+            ...previousDrafts,
+            [selectedOrderId]: '',
+        }));
     };
 
     if (!user) {
@@ -138,14 +156,6 @@ const ChatWorkspace = ({ role, title, subtitle, basePath, emptyMessage }: ChatWo
             }}
         >
             <Stack spacing={2} sx={{ flex: 1, minHeight: 0 }}>
-                {!isMobileThreadView ? (
-                    <ChatWorkspaceHeader
-                        unreadCount={unreadCount}
-                        showBackButton={location.pathname !== basePath}
-                        onBackToInbox={handleBackToInbox}
-                    />
-                ) : null}
-
                 <Box
                     sx={{
                         display: 'grid',
@@ -175,7 +185,16 @@ const ChatWorkspace = ({ role, title, subtitle, basePath, emptyMessage }: ChatWo
                             recipientName={recipientName}
                             conversationTitle={conversationTitle}
                             draft={draft}
-                            onDraftChange={setDraft}
+                            onDraftChange={(value) => {
+                                if (!selectedOrderId) {
+                                    return;
+                                }
+
+                                setDraftsByOrderId((previousDrafts) => ({
+                                    ...previousDrafts,
+                                    [selectedOrderId]: value,
+                                }));
+                            }}
                             onBackToInbox={handleBackToInbox}
                             onSend={handleSend}
                         />
