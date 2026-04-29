@@ -131,6 +131,20 @@ export interface OrderCreate {
     currency?: string;
 }
 
+export interface OrderUpdate {
+    pickup_address?: string;
+    pickup_lat?: number;
+    pickup_lng?: number;
+    dropoff_address?: string;
+    dropoff_lat?: number;
+    dropoff_lng?: number;
+    cargo_description?: string | null;
+    cargo_weight_kg?: number | null;
+    notes?: string | null;
+    price_cents?: number;
+    currency?: string;
+}
+
 export interface OrderCancel {
     reason?: string | null;
 }

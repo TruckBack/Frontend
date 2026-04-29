@@ -1,5 +1,5 @@
 import apiService from './api';
-import type { Order, OrderCreate, OrderCancel, Page } from './types';
+import type { Order, OrderCreate, OrderUpdate, OrderCancel, Page } from './types';
 
 export const orderService = {
     createOrder(data: OrderCreate): Promise<Order> {
@@ -40,5 +40,13 @@ export const orderService = {
 
     cancelOrder(orderId: number, data: OrderCancel): Promise<Order> {
         return apiService.post(`/orders/${orderId}/cancel`, data).then(res => res.data);
+    },
+
+    updateOrder(orderId: number, data: OrderUpdate): Promise<Order> {
+        return apiService.patch(`/orders/${orderId}`, data).then(res => res.data);
+    },
+
+    deleteOrder(orderId: number): Promise<void> {
+        return apiService.delete(`/orders/${orderId}`).then(() => undefined);
     },
 };
