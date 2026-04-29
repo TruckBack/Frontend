@@ -1,5 +1,5 @@
-import { Place } from '@mui/icons-material';
-import { Button, Card, Chip, Stack, Typography, useTheme } from '@mui/material';
+import { DeleteOutline, EditOutlined, Place } from '@mui/icons-material';
+import { Button, Card, Chip, IconButton, Stack, Tooltip, Typography, useTheme } from '@mui/material';
 import { getCustomerOrderStatusColor, getCustomerOrderStatusLabel, type CustomerOrderStatus } from '../../../utils/statusUtils';
 
 export interface CustomerOrder {
@@ -19,10 +19,13 @@ export interface CustomerOrder {
 interface CustomerOrderCardProps {
     order: CustomerOrder;
     onOpenChat: (order: CustomerOrder) => void;
+    onEdit?: (order: CustomerOrder) => void;
+    onDelete?: (order: CustomerOrder) => void;
 }
 
-export default function CustomerOrderCard({ order, onOpenChat }: CustomerOrderCardProps) {
+export default function CustomerOrderCard({ order, onOpenChat, onEdit, onDelete }: CustomerOrderCardProps) {
     const theme = useTheme();
+    const canModify = order.status === 'pending';
 
     return (
         <Card
@@ -54,13 +57,29 @@ export default function CustomerOrderCard({ order, onOpenChat }: CustomerOrderCa
                             {order.orderNumber}
                         </Typography>
                     </Stack>
-                    <Stack alignItems="flex-end" spacing={0.25}>
-                        <Typography variant="h6" fontWeight={700} color="success.main" lineHeight={1}>
-                            ${order.price.toFixed(2)}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                            {order.date}
-                        </Typography>
+                    <Stack direction="row" alignItems="center" spacing={0.5}>
+                        {canModify && (
+                            <>
+                                <Tooltip title="Edit order">
+                                    <IconButton size="small" onClick={() => onEdit?.(order)}>
+                                        <EditOutlined fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Delete order">
+                                    <IconButton size="small" color="error" onClick={() => onDelete?.(order)}>
+                                        <DeleteOutline fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                            </>
+                        )}
+                        <Stack alignItems="flex-end" spacing={0.25}>
+                            <Typography variant="h6" fontWeight={700} color="success.main" lineHeight={1}>
+                                ${order.price.toFixed(2)}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                                {order.date}
+                            </Typography>
+                        </Stack>
                     </Stack>
                 </Stack>
 

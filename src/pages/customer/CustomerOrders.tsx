@@ -1,8 +1,15 @@
 import { useEffect, useState } from 'react';
 import {
     Box,
-    Stack,
+    Button,
     CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    Stack,
+    TextField,
     Typography,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -12,7 +19,7 @@ import OrderFilters from '../../components/customer/orders/OrderFilters';
 import CustomerOrderCard, { type CustomerOrder } from '../../components/customer/orders/CustomerOrderCard';
 import { useOrderFiltering } from '../../hooks/useOrderFiltering';
 import { orderService } from '../../services/order';
-import type { Order } from '../../services/types';
+import type { Order, OrderUpdate } from '../../services/types';
 
 const mapOrderStatus = (status: Order['status']): CustomerOrder['status'] => {
     switch (status) {
@@ -50,6 +57,23 @@ export default function CustomerOrders() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // Edit dialog state
+    const [editingOrder, setEditingOrder] = useState<Order | null>(null);
+    const [editForm, setEditForm] = useState<{
+        pickup_address: string;
+        dropoff_address: string;
+        cargo_description: string;
+        cargo_weight_kg: string;
+        notes: string;
+        budget: string;
+    }>({ pickup_address: '', dropoff_address: '', cargo_description: '', cargo_weight_kg: '', notes: '', budget: '' });
+    const [editSaving, setEditSaving] = useState(false);
+    const [editError, setEditError] = useState<string | null>(null);
+
+    // Delete confirmation state
+    const [deletingOrder, setDeletingOrder] = useState<Order | null>(null);
+    const [deleteInProgress, setDeleteInProgress] = useState(false);
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -89,6 +113,63 @@ export default function CustomerOrders() {
         });
     };
 
+    const handleOpenEdit = (customerOrder: CustomerOrder) => {
+        const raw = orders.find(o => String(o.id) === customerOrder.id);
+        if (!raw) return;
+        setEditingOrder(raw);
+        setEditForm({
+            pickup_address: raw.pickup_address,
+            dropoff_address: raw.dropoff_address,
+            cargo_description: raw.cargo_description ?? '',
+            cargo_weight_kg: String(raw.cargo_weight_kg ?? ''),
+            notes: raw.notes ?? '',
+            budget: String(raw.price_cents / 100),
+        });
+        setEditError(null);
+    };
+
+    const handleSaveEdit = async () => {
+        if (!editingOrder) return;
+        setEditSaving(true);
+        setEditError(null);
+        try {
+            const payload: OrderUpdate = {
+                pickup_address: editForm.pickup_address,
+                dropoff_address: editForm.dropoff_address,
+                cargo_description: editForm.cargo_description || null,
+                cargo_weight_kg: editForm.cargo_weight_kg ? parseFloat(editForm.cargo_weight_kg) : null,
+                notes: editForm.notes || null,
+                price_cents: Math.round(parseFloat(editForm.budget) * 100),
+            };
+            const updated = await orderService.updateOrder(editingOrder.id, payload);
+            setOrders(prev => prev.map(o => o.id === updated.id ? updated : o));
+            setEditingOrder(null);
+        } catch {
+            setEditError('Failed to save changes. Please try again.');
+        } finally {
+            setEditSaving(false);
+        }
+    };
+
+    const handleOpenDelete = (customerOrder: CustomerOrder) => {
+        const raw = orders.find(o => String(o.id) === customerOrder.id);
+        if (raw) setDeletingOrder(raw);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deletingOrder) return;
+        setDeleteInProgress(true);
+        try {
+            await orderService.deleteOrder(deletingOrder.id);
+            setOrders(prev => prev.filter(o => o.id !== deletingOrder.id));
+            setDeletingOrder(null);
+        } catch {
+            // keep dialog open, user can retry
+        } finally {
+            setDeleteInProgress(false);
+        }
+    };
+
     if (loading) {
         return <CircularProgress sx={{ display: 'block', mx: 'auto', my: 4 }} />;
     }
@@ -98,6 +179,7 @@ export default function CustomerOrders() {
     }
 
     return (
+        <>
         <Box
             sx={{
                 width: '100%',
@@ -119,10 +201,93 @@ export default function CustomerOrders() {
 
                 <Stack spacing={1.5}>
                     {filteredOrders.map((order) => (
-                        <CustomerOrderCard key={order.id} order={order} onOpenChat={handleOpenChat} />
+                        <CustomerOrderCard
+                            key={order.id}
+                            order={order}
+                            onOpenChat={handleOpenChat}
+                            onEdit={handleOpenEdit}
+                            onDelete={handleOpenDelete}
+                        />
                     ))}
                 </Stack>
             </Stack>
         </Box>
+
+        {/* Edit Order Dialog */}
+        <Dialog open={!!editingOrder} onClose={() => setEditingOrder(null)} fullWidth maxWidth="sm">
+            <DialogTitle>Edit Order #{editingOrder?.id}</DialogTitle>
+            <DialogContent>
+                <Stack spacing={2} sx={{ mt: 1 }}>
+                    {editError && <Typography color="error" variant="body2">{editError}</Typography>}
+                    <TextField
+                        label="Pickup Address"
+                        fullWidth
+                        value={editForm.pickup_address}
+                        onChange={e => setEditForm(f => ({ ...f, pickup_address: e.target.value }))}
+                    />
+                    <TextField
+                        label="Dropoff Address"
+                        fullWidth
+                        value={editForm.dropoff_address}
+                        onChange={e => setEditForm(f => ({ ...f, dropoff_address: e.target.value }))}
+                    />
+                    <TextField
+                        label="Cargo Description"
+                        fullWidth
+                        multiline
+                        minRows={2}
+                        value={editForm.cargo_description}
+                        onChange={e => setEditForm(f => ({ ...f, cargo_description: e.target.value }))}
+                    />
+                    <Stack direction="row" spacing={2}>
+                        <TextField
+                            label="Weight (kg)"
+                            type="number"
+                            fullWidth
+                            value={editForm.cargo_weight_kg}
+                            onChange={e => setEditForm(f => ({ ...f, cargo_weight_kg: e.target.value }))}
+                        />
+                        <TextField
+                            label="Budget ($)"
+                            type="number"
+                            fullWidth
+                            value={editForm.budget}
+                            onChange={e => setEditForm(f => ({ ...f, budget: e.target.value }))}
+                        />
+                    </Stack>
+                    <TextField
+                        label="Notes"
+                        fullWidth
+                        multiline
+                        minRows={2}
+                        value={editForm.notes}
+                        onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))}
+                    />
+                </Stack>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={() => setEditingOrder(null)} disabled={editSaving}>Cancel</Button>
+                <Button variant="contained" onClick={handleSaveEdit} disabled={editSaving}>
+                    {editSaving ? <CircularProgress size={20} color="inherit" /> : 'Save'}
+                </Button>
+            </DialogActions>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={!!deletingOrder} onClose={() => setDeletingOrder(null)}>
+            <DialogTitle>Delete Order #{deletingOrder?.id}?</DialogTitle>
+            <DialogContent>
+                <DialogContentText>
+                    This action cannot be undone. The order will be permanently deleted.
+                </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={() => setDeletingOrder(null)} disabled={deleteInProgress}>Cancel</Button>
+                <Button variant="contained" color="error" onClick={handleConfirmDelete} disabled={deleteInProgress}>
+                    {deleteInProgress ? <CircularProgress size={20} color="inherit" /> : 'Delete'}
+                </Button>
+            </DialogActions>
+        </Dialog>
+        </>
     );
 }
