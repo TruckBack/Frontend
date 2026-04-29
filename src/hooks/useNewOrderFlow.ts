@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { ORDER_STEPS } from '../components/customer/new-order/orderSteps';
+import { orderService } from '../services/order';
+import type { OrderCreate } from '../services/types';
 
 export interface NewOrderFormData {
     pickupAddress: string;
@@ -124,6 +126,7 @@ export function useNewOrderFlow() {
     const packageInsightTimeoutRef = useRef<number | null>(null);
     const [currentStep, setCurrentStep] = useState(1);
     const [attachmentName, setAttachmentName] = useState('');
+    const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
     const [formData, setFormData] = useState<NewOrderFormData>(initialFormData);
     const [fieldErrors, setFieldErrors] = useState<NewOrderFieldErrors>({});
     const [hasTouchedDescription, setHasTouchedDescription] = useState(false);
@@ -132,6 +135,7 @@ export function useNewOrderFlow() {
     const [isGeneratingPackageInsight, setIsGeneratingPackageInsight] = useState(false);
     const [isGeneratingBudgetInsight, setIsGeneratingBudgetInsight] = useState(true);
     const [budgetInsight, setBudgetInsight] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         setIsGeneratingBudgetInsight(true);
@@ -205,7 +209,7 @@ export function useNewOrderFlow() {
         }, 1500);
     };
 
-    const handleContinue = () => {
+    const handleContinue = async () => {
         const errors = validateStep(currentStep, formData, attachmentName);
 
         if (hasErrors(errors)) {
@@ -216,13 +220,37 @@ export function useNewOrderFlow() {
         setFieldErrors({});
 
         if (currentStep === ORDER_STEPS.length) {
-            const orderPayload = {
-                ...formData,
-                attachmentName,
-            };
+            setIsSubmitting(true);
+            try {
+                // In a real app, you'd use a geocoding service.
+                const orderPayload: OrderCreate = {
+                    pickup_address: formData.pickupAddress,
+                    pickup_lat: 34.0522, // Placeholder
+                    pickup_lng: -118.2437, // Placeholder
+                    dropoff_address: formData.deliveryAddress,
+                    dropoff_lat: 34.0522, // Placeholder
+                    dropoff_lng: -118.2437, // Placeholder
+                    cargo_description: formData.description,
+                    cargo_weight_kg: parseFloat(formData.weightKg),
+                    notes: `Dimensions: ${formData.dimensions}, Package Type: ${formData.packageType}`,
+                    price_cents: Math.round(parseFloat(formData.budget) * 100),
+                };
 
-            // Mock submit destination until API integration is available.
-            console.info('Submitting new order payload:', orderPayload);
+                // TODO: Handle image upload with uploadService
+                // For now, we just log the file
+                if (attachmentFile) {
+                    console.info('Attached file:', attachmentFile.name);
+                }
+
+                await orderService.createOrder(orderPayload);
+                // Handle successful submission, e.g., redirect or show success message
+                console.info('Successfully submitted new order:', orderPayload);
+            } catch (error) {
+                console.error('Failed to submit order:', error);
+                setFieldErrors({ budget: 'Failed to create order. Please try again.' });
+            } finally {
+                setIsSubmitting(false);
+            }
             return;
         }
 
@@ -268,6 +296,7 @@ export function useNewOrderFlow() {
         }
 
         setAttachmentName(file.name);
+        setAttachmentFile(file);
 
         setFieldErrors((prev) => {
             if (!prev.attachmentName) {
@@ -292,6 +321,7 @@ export function useNewOrderFlow() {
         isGeneratingPackageInsight,
         budgetInsight,
         isGeneratingBudgetInsight,
+        isSubmitting,
         setFormField,
         handlePackageDescriptionChange,
         handlePackageDescriptionBlur,

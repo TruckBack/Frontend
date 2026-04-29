@@ -32,12 +32,71 @@ export interface Delivery {
 
 interface DeliveryCardProps {
     delivery: Delivery;
+    onAccept?: (id: string) => void;
+    onStart?: (id: string) => void;
+    onPickup?: (id: string) => void;
+    onComplete?: (id: string) => void;
 }
 
-const DeliveryCard = ({ delivery }: DeliveryCardProps) => {
+const DeliveryCard = ({ delivery, onAccept, onStart, onPickup, onComplete }: DeliveryCardProps) => {
     const theme = useTheme();
     const navigate = useNavigate();
     const statusColor = getDriverDeliveryStatusColor(delivery.status, theme.palette);
+
+    const renderActionButtons = () => {
+        switch (delivery.status) {
+            case 'pending':
+                return (
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        size="small"
+                        fullWidth
+                        onClick={() => onAccept?.(delivery.id)}
+                    >
+                        Accept
+                    </Button>
+                );
+            case 'accepted':
+                return (
+                    <Button
+                        variant="contained"
+                        color="info"
+                        size="small"
+                        fullWidth
+                        onClick={() => onStart?.(delivery.id)}
+                    >
+                        Start Driving
+                    </Button>
+                );
+            case 'in-progress':
+                return (
+                    <Button
+                        variant="contained"
+                        color="warning"
+                        size="small"
+                        fullWidth
+                        onClick={() => onPickup?.(delivery.id)}
+                    >
+                        Confirm Pickup
+                    </Button>
+                );
+            case 'picked-up':
+                return (
+                    <Button
+                        variant="contained"
+                        color="success"
+                        size="small"
+                        fullWidth
+                        onClick={() => onComplete?.(delivery.id)}
+                    >
+                        Complete Delivery
+                    </Button>
+                );
+            default:
+                return null;
+        }
+    }
 
     return (
         <Card
@@ -148,14 +207,7 @@ const DeliveryCard = ({ delivery }: DeliveryCardProps) => {
                     },
                 }}
             >
-                <Button
-                    variant="contained"
-                    color="success"
-                    size="small"
-                    fullWidth
-                >
-                    Complete
-                </Button>
+                {renderActionButtons()}
                 <Button
                     variant="contained"
                     color="secondary"

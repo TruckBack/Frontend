@@ -2,17 +2,26 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import authService from '../services/auth';
 import { storage } from '../services/storage';
-import type { AccountRole, User } from '../services/types';
+import type {
+  User,
+  LoginRequest,
+  CustomerRegister,
+  DriverRegister,
+  UserRole,
+} from '../services/types';
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (username: string, password: string, role: AccountRole) => Promise<void>;
-  register: (username: string, password: string, email: string, role: AccountRole) => Promise<void>;
+  login: (data: LoginRequest) => Promise<void>;
+  register: (
+    data: CustomerRegister | DriverRegister,
+    role: UserRole
+  ) => Promise<void>;
   logout: () => Promise<void>;
-  loginWithGoogle: (role: AccountRole) => Promise<void>;
-  loginWithFacebook: (role: AccountRole) => Promise<void>;
+  loginWithGoogle: (role: UserRole) => Promise<void>;
+  loginWithFacebook: (role: UserRole) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,48 +31,56 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in
-    const storedUser = localStorage.getItem('user');
-    const accessToken = storage.getToken();
-
-    if (storedUser && accessToken) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Error parsing stored user:', error);
-        localStorage.removeItem('user');
+    const initAuth = async () => {
+      const accessToken = storage.getAccessToken();
+      if (accessToken) {
+        try {
+          const currentUser = await authService.getMe();
+          setUser(currentUser);
+        } catch (error) {
+          console.error('Failed to fetch user', error);
+          storage.clearTokens(); // Clear tokens if getMe fails
+        }
       }
-    }
+      setIsLoading(false);
+    };
 
-    setIsLoading(false);
+    initAuth();
   }, []);
 
-  const login = async (username: string, password: string, role: AccountRole) => {
-    const response = await authService.login({ username, password, role });
+  const login = async (data: LoginRequest) => {
+    const response = await authService.login(data);
     setUser(response);
-    localStorage.setItem('user', JSON.stringify(response));
+    // User is now stored in localStorage by the service
   };
 
-  const register = async (username: string, password: string, email: string, role: AccountRole) => {
-    const user = await authService.register({ username, password, email, role });
-    setUser(user);
-    localStorage.setItem('user', JSON.stringify(user));
+  const register = async (
+    data: CustomerRegister | DriverRegister,
+    role: UserRole
+  ) => {
+    // The register endpoint in the spec doesn't log the user in.
+    // It just creates the user. After registration, the user should be
+    // redirected to the login page to log in with their new credentials.
+    await authService.register(data, role);
   };
 
   const logout = async () => {
     await authService.logout();
     setUser(null);
-    localStorage.removeItem('user');
   };
 
-  const loginWithGoogle = async (role: AccountRole) => {
+  const loginWithGoogle = async (role: UserRole) => {
     const url = await authService.loginWithGoogle(role);
-    window.location.href = url;
+    if (url !== '#') {
+      window.location.href = url;
+    }
   };
 
-  const loginWithFacebook = async (role: AccountRole) => {
+  const loginWithFacebook = async (role: UserRole) => {
     const url = await authService.loginWithFacebook(role);
-    window.location.href = url;
+    if (url !== '#') {
+      window.location.href = url;
+    }
   };
 
   const value: AuthContextType = {

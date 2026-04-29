@@ -15,56 +15,106 @@ import {
 import {
     BadgeOutlined,
     Google,
-    PhoneRounded,
+    EmailOutlined,
+    LockOutlined,
+    PersonOutline,
+    LocalShippingOutlined,
+    ConfirmationNumberOutlined,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import type { AccountRole } from '../../services/types';
+import type { AccountRole, UserRole } from '../../services/types';
+import { isAxiosError } from 'axios';
 
 type AuthMode = 'login' | 'register';
+type FieldErrors = Record<string, string>;
 
 const Login = () => {
-    const [role, setRole] = useState<AccountRole>('driver');
+    const [role, setRole] = useState<UserRole>('driver');
     const [modeType, setModeType] = useState<AuthMode>('login');
-    const [idNumber, setIdNumber] = useState('');
-    const [phoneNumber, setPhoneNumber] = useState('');
     const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [fullName, setFullName] = useState('');
+    const [licenseNumber, setLicenseNumber] = useState('');
+    const [vehicleType, setVehicleType] = useState('');
+    const [vehiclePlate, setVehiclePlate] = useState('');
     const [error, setError] = useState<string | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
     const [loading, setLoading] = useState(false);
 
     const { login, register, loginWithGoogle } = useAuth();
     const navigate = useNavigate();
 
-    const handleRoleChange = (_event: React.MouseEvent<HTMLElement>, newRole: AccountRole | null) => {
+    const handleRoleChange = (_event: React.MouseEvent<HTMLElement>, newRole: UserRole | null) => {
         if (!newRole) {
             return;
         }
 
         setRole(newRole);
         setError(null);
+        setFieldErrors({});
     };
 
-    const clearFormError = () => {
-        if (error) {
-            setError(null);
-        }
+    const clearFormErrors = () => {
+        if (error) setError(null);
+        if (Object.keys(fieldErrors).length > 0) setFieldErrors({});
     };
+
+    const clearFieldError = (field: string) => {
+        if (fieldErrors[field]) {
+            setFieldErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors[field];
+                return newErrors;
+            });
+        }
+    }
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
-        setError(null);
+        clearFormErrors();
         setLoading(true);
 
         try {
             if (modeType === 'login') {
-                await login(idNumber, phoneNumber, role);
+                await login({ email, password });
             } else {
-                await register(idNumber, phoneNumber, email, role);
+                const commonData = { email, password, full_name: fullName };
+                if (role === 'driver') {
+                    await register({
+                        ...commonData,
+                        license_number: licenseNumber,
+                        vehicle_type: vehicleType,
+                        vehicle_plate: vehiclePlate,
+                    }, role);
+                } else {
+                    await register(commonData, role);
+                }
             }
 
             navigate('/');
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
+            if (isAxiosError(err) && err.response?.data?.error?.code === 'validation_error') {
+                const details = err.response.data.error.details || [];
+                const newFieldErrors: FieldErrors = {};
+                details.forEach((detail: any) => {
+                    // The location array is like ["body", "password"]
+                    const fieldName = detail.loc[detail.loc.length - 1];
+                    // Map backend field names to frontend state names if they differ
+                    const fieldMap: Record<string, string> = {
+                        'full_name': 'fullName',
+                        'license_number': 'licenseNumber',
+                        'vehicle_type': 'vehicleType',
+                        'vehicle_plate': 'vehiclePlate',
+                    };
+                    const mappedField = fieldMap[fieldName] || fieldName;
+                    newFieldErrors[mappedField] = detail.msg;
+                });
+                setFieldErrors(newFieldErrors);
+                setError('Please correct the errors below.');
+            } else {
+                setError(err instanceof Error ? err.message : 'An error occurred');
+            }
         } finally {
             setLoading(false);
         }
@@ -79,6 +129,18 @@ const Login = () => {
             setLoading(false);
         }
     };
+
+    const isFormValid = () => {
+        if (modeType === 'login') {
+            return email && password;
+        }
+        // Registration
+        if (!email || !password || !fullName) return false;
+        if (role === 'driver') {
+            return licenseNumber && vehicleType && vehiclePlate;
+        }
+        return true;
+    }
 
     return (
         <Box
@@ -177,23 +239,26 @@ const Login = () => {
                         <Stack spacing={2}>
                             <Box>
                                 <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 1 }}>
-                                    ID Number
+                                    Email
                                 </Typography>
                                 <TextField
                                     fullWidth
-                                    placeholder="Enter your ID"
-                                    value={idNumber}
+                                    type="email"
+                                    placeholder="Enter your email"
+                                    value={email}
                                     onChange={(event) => {
-                                        setIdNumber(event.target.value);
-                                        clearFormError();
+                                        setEmail(event.target.value);
+                                        clearFieldError('email');
                                     }}
                                     required
-                                    autoComplete="username"
+                                    autoComplete="email"
                                     disabled={loading}
+                                    error={!!fieldErrors.email}
+                                    helperText={fieldErrors.email}
                                     InputProps={{
                                         startAdornment: (
                                             <InputAdornment position="start">
-                                                <BadgeOutlined color="primary" />
+                                                <EmailOutlined color="primary" />
                                             </InputAdornment>
                                         ),
                                     }}
@@ -202,23 +267,26 @@ const Login = () => {
 
                             <Box>
                                 <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 1 }}>
-                                    Phone Number
+                                    Password
                                 </Typography>
                                 <TextField
                                     fullWidth
-                                    placeholder="+1-555-0123"
-                                    value={phoneNumber}
+                                    type="password"
+                                    placeholder="Enter your password"
+                                    value={password}
                                     onChange={(event) => {
-                                        setPhoneNumber(event.target.value);
-                                        clearFormError();
+                                        setPassword(event.target.value);
+                                        clearFieldError('password');
                                     }}
                                     required
                                     autoComplete={modeType === 'login' ? 'current-password' : 'new-password'}
                                     disabled={loading}
+                                    error={!!fieldErrors.password}
+                                    helperText={fieldErrors.password}
                                     InputProps={{
                                         startAdornment: (
                                             <InputAdornment position="start">
-                                                <PhoneRounded color="primary" />
+                                                <LockOutlined color="primary" />
                                             </InputAdornment>
                                         ),
                                     }}
@@ -226,24 +294,113 @@ const Login = () => {
                             </Box>
 
                             {modeType === 'register' && (
-                                <Box>
-                                    <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 1 }}>
-                                        Email
-                                    </Typography>
-                                    <TextField
-                                        fullWidth
-                                        type="email"
-                                        placeholder="example@truckback.app"
-                                        value={email}
-                                        onChange={(event) => {
-                                            setEmail(event.target.value);
-                                            clearFormError();
-                                        }}
-                                        required
-                                        autoComplete="email"
-                                        disabled={loading}
-                                    />
-                                </Box>
+                                <>
+                                    <Box>
+                                        <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 1 }}>
+                                            Full Name
+                                        </Typography>
+                                        <TextField
+                                            fullWidth
+                                            placeholder="Enter your full name"
+                                            value={fullName}
+                                            onChange={(event) => {
+                                                setFullName(event.target.value);
+                                                clearFieldError('fullName');
+                                            }}
+                                            required
+                                            autoComplete="name"
+                                            disabled={loading}
+                                            error={!!fieldErrors.fullName}
+                                            helperText={fieldErrors.fullName}
+                                            InputProps={{
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <PersonOutline color="primary" />
+                                                    </InputAdornment>
+                                                ),
+                                            }}
+                                        />
+                                    </Box>
+                                    {role === 'driver' && (
+                                        <>
+                                            <Box>
+                                                <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 1 }}>
+                                                    License Number
+                                                </Typography>
+                                                <TextField
+                                                    fullWidth
+                                                    placeholder="Enter your license number"
+                                                    value={licenseNumber}
+                                                    onChange={(event) => {
+                                                        setLicenseNumber(event.target.value);
+                                                        clearFieldError('licenseNumber');
+                                                    }}
+                                                    required
+                                                    disabled={loading}
+                                                    error={!!fieldErrors.licenseNumber}
+                                                    helperText={fieldErrors.licenseNumber}
+                                                    InputProps={{
+                                                        startAdornment: (
+                                                            <InputAdornment position="start">
+                                                                <BadgeOutlined color="primary" />
+                                                            </InputAdornment>
+                                                        ),
+                                                    }}
+                                                />
+                                            </Box>
+                                            <Box>
+                                                <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 1 }}>
+                                                    Vehicle Type
+                                                </Typography>
+                                                <TextField
+                                                    fullWidth
+                                                    placeholder="e.g., Van, Truck"
+                                                    value={vehicleType}
+                                                    onChange={(event) => {
+                                                        setVehicleType(event.target.value);
+                                                        clearFieldError('vehicleType');
+                                                    }}
+                                                    required
+                                                    disabled={loading}
+                                                    error={!!fieldErrors.vehicleType}
+                                                    helperText={fieldErrors.vehicleType}
+                                                    InputProps={{
+                                                        startAdornment: (
+                                                            <InputAdornment position="start">
+                                                                <LocalShippingOutlined color="primary" />
+                                                            </InputAdornment>
+                                                        ),
+                                                    }}
+                                                />
+                                            </Box>
+                                            <Box>
+                                                <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 1 }}>
+                                                    Vehicle Plate
+                                                </Typography>
+                                                <TextField
+                                                    fullWidth
+                                                    placeholder="Enter vehicle plate number"
+                                                    value={vehiclePlate}
+                                                    onChange={(event) => {
+                                                        setVehiclePlate(event.target.value);
+                                                        clearFieldError('vehiclePlate');
+                                                    }}
+                                                    required
+                                                    disabled={loading}
+                                                    error={!!fieldErrors.vehiclePlate}
+                                                    helperText={fieldErrors.vehiclePlate}
+                                                    InputProps={{
+                                                        startAdornment: (
+                                                            <InputAdornment position="start">
+                                                                <ConfirmationNumberOutlined color="primary" />
+                                                            </InputAdornment>
+                                                        ),
+                                                    }}
+                                                />
+                                            </Box>
+                                        </>
+                                    )}
+                                </>
                             )}
 
                             <Button
@@ -251,7 +408,7 @@ const Login = () => {
                                 fullWidth
                                 variant="contained"
                                 size="large"
-                                disabled={loading || !idNumber || !phoneNumber || (modeType === 'register' && !email)}
+                                disabled={loading || !isFormValid()}
                                 sx={{ mt: 2, py: 1.5, borderRadius: 2.5 }}
                             >
                                 {loading ? (
@@ -270,7 +427,7 @@ const Login = () => {
                                     variant="text"
                                     onClick={() => {
                                         setModeType(modeType === 'login' ? 'register' : 'login');
-                                        clearFormError();
+                                        clearFormErrors();
                                     }}
                                     disabled={loading}
                                     sx={{ minWidth: 0, p: 0, fontWeight: 700, verticalAlign: 'baseline' }}

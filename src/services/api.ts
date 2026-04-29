@@ -6,13 +6,13 @@ import type {
   AxiosResponse
 } from 'axios';
 import { storage } from './storage';
+import type { TokenResponse } from './types';
 
 const apiService: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true,
 });
 
 // Queue Mechanism (Handles concurrent 401s)
@@ -37,7 +37,7 @@ const processQueue = (error: AxiosError | null, token: string | null = null) => 
 
 apiService.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = storage.getToken();
+    const token = storage.getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -51,13 +51,11 @@ apiService.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    // If error is not 401 or request was already retried, reject
     if (error.response?.status !== 401 || originalRequest._retry) {
       return Promise.reject(error);
     }
 
     if (isRefreshing) {
-      // If already refreshing, queue this request
       return new Promise<string>((resolve, reject) => {
         failedQueue.push({ resolve, reject });
       })
@@ -71,26 +69,33 @@ apiService.interceptors.response.use(
     originalRequest._retry = true;
     isRefreshing = true;
 
+    const refreshToken = storage.getRefreshToken();
+    if (!refreshToken) {
+      storage.clearTokens();
+      window.location.href = '/login';
+      return Promise.reject(error);
+    }
+
     try {
-      // We do NOT send the refresh token manually. The browser sends the cookie.
-      const response = await axios.post(
+      const response = await axios.post<TokenResponse>(
         `${apiService.defaults.baseURL}/auth/refresh`,
-        {}, // Empty body
-        { withCredentials: true } // Ensure cookie is sent for this specific request
+        { refresh_token: refreshToken }
       );
 
-      const { accessToken } = response.data;
+      const { access_token, refresh_token } = response.data;
 
-      storage.setToken(accessToken);
-      apiService.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-      processQueue(null, accessToken);
+      storage.setAccessToken(access_token);
+      storage.setRefreshToken(refresh_token);
 
-      originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+      apiService.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+      processQueue(null, access_token);
+
+      originalRequest.headers.Authorization = `Bearer ${access_token}`;
       return apiService(originalRequest);
 
     } catch (refreshError) {
       processQueue(refreshError as AxiosError, null);
-      storage.clearToken();
+      storage.clearTokens();
       window.location.href = '/login';
       return Promise.reject(refreshError);
     } finally {

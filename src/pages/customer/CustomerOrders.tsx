@@ -1,6 +1,9 @@
+import { useEffect, useState } from 'react';
 import {
     Box,
     Stack,
+    CircularProgress,
+    Typography,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../../components/shared/PageHeader';
@@ -8,57 +11,73 @@ import OrderStatsRow from '../../components/customer/orders/OrderStatsRow';
 import OrderFilters from '../../components/customer/orders/OrderFilters';
 import CustomerOrderCard, { type CustomerOrder } from '../../components/customer/orders/CustomerOrderCard';
 import { useOrderFiltering } from '../../hooks/useOrderFiltering';
+import { orderService } from '../../services/order';
+import type { Order } from '../../services/types';
 
-const mockOrders: CustomerOrder[] = [
-    {
-        id: '1',
-        orderNumber: 'Order #1',
-        status: 'in-transit',
-        price: 45,
-        date: '2025-12-28',
-        category: 'Furniture',
-        weight: '15 kg',
-        pickup: '123 Main St, Downtown',
-        dropoff: '456 Oak Ave, Uptown',
-        driverName: 'John Driver',
-        driverPhone: '+1-555-0111',
-    },
-    {
-        id: '2',
-        orderNumber: 'Order #2',
-        status: 'pending',
-        price: 30,
-        date: '2025-12-28',
-        category: 'Electronics',
-        weight: '8 kg',
-        pickup: '789 Tech Ave, Midtown',
-        dropoff: '321 Park St, Northside',
-        driverName: 'Not assigned',
-        driverPhone: '+1-555-0000',
-    },
-    {
-        id: '3',
-        orderNumber: 'Order #3',
-        status: 'delivered',
-        price: 28,
-        date: '2025-12-27',
-        category: 'Documents',
-        weight: '2 kg',
-        pickup: '22 Green St, Westside',
-        dropoff: '88 River Rd, Eastside',
-        driverName: 'Sarah Driver',
-        driverPhone: '+1-555-0199',
-    },
-];
+const mapOrderStatus = (status: Order['status']): CustomerOrder['status'] => {
+    switch (status) {
+        case 'pending':
+        case 'accepted':
+            return 'pending';
+        case 'in_progress':
+        case 'picked_up':
+            return 'in-transit';
+        case 'completed':
+            return 'delivered';
+        case 'cancelled':
+            return 'cancelled';
+        default:
+            return 'pending';
+    }
+}
+
+const mapOrderToCustomerOrder = (order: Order): CustomerOrder => ({
+    id: String(order.id),
+    orderNumber: `Order #${order.id}`,
+    status: mapOrderStatus(order.status),
+    price: order.price_cents / 100,
+    date: new Date(order.created_at).toISOString().split('T')[0],
+    category: order.cargo_description || 'General',
+    weight: `${order.cargo_weight_kg || 0} kg`,
+    pickup: order.pickup_address,
+    dropoff: order.dropoff_address,
+    driverName: 'Not assigned', // This would need more logic, maybe fetching user by driver_id
+    driverPhone: '', // Same as above
+});
 
 export default function CustomerOrders() {
     const navigate = useNavigate();
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                setLoading(true);
+                const [history, active] = await Promise.all([
+                    orderService.listOrderHistory(),
+                    orderService.listMyActiveOrders(),
+                ]);
+                setOrders([...active, ...history.items]);
+            } catch (err) {
+                setError('Failed to fetch orders.');
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchOrders();
+    }, []);
+
+    const customerOrders = orders.map(mapOrderToCustomerOrder);
+
     const {
         selectedFilter,
         setSelectedFilter,
         counts,
         filteredOrders,
-    } = useOrderFiltering(mockOrders);
+    } = useOrderFiltering(customerOrders);
 
     const handleOpenChat = (order: CustomerOrder) => {
         navigate(`/customer/chat/${order.id}`, {
@@ -69,6 +88,14 @@ export default function CustomerOrders() {
             },
         });
     };
+
+    if (loading) {
+        return <CircularProgress sx={{ display: 'block', mx: 'auto', my: 4 }} />;
+    }
+
+    if (error) {
+        return <Typography color="error" sx={{ textAlign: 'center', my: 4 }}>{error}</Typography>;
+    }
 
     return (
         <Box
