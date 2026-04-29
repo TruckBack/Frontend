@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { ORDER_STEPS } from '../components/customer/new-order/orderSteps';
+import apiService from '../services/api';
 import { orderService } from '../services/order';
 import type { OrderCreate } from '../services/types';
 
@@ -124,6 +125,7 @@ const validateStep = (step: number, formData: NewOrderFormData, attachmentName: 
 export function useNewOrderFlow() {
     const imageInputRef = useRef<HTMLInputElement | null>(null);
     const packageInsightTimeoutRef = useRef<number | null>(null);
+    const budgetInsightCacheRef = useRef<{ key: string; result: string } | null>(null);
     const [currentStep, setCurrentStep] = useState(1);
     const [attachmentName, setAttachmentName] = useState('');
     const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
@@ -138,18 +140,54 @@ export function useNewOrderFlow() {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
+        if (currentStep !== 3) return;
+
+        const cacheKey = JSON.stringify({
+            packageType: formData.packageType,
+            preferredDate: formData.preferredDate,
+            pickupTime: formData.pickupTime,
+            dimensions: formData.dimensions,
+            description: formData.description,
+        });
+
+        if (budgetInsightCacheRef.current?.key === cacheKey) {
+            setBudgetInsight(budgetInsightCacheRef.current.result);
+            setIsGeneratingBudgetInsight(false);
+            return;
+        }
+
         setIsGeneratingBudgetInsight(true);
         setBudgetInsight('');
 
-        const timeoutId = window.setTimeout(() => {
-            setBudgetInsight('Suggested: $45.00');
-            setIsGeneratingBudgetInsight(false);
-        }, 1400);
+        const message =
+            `Please estimate a fair delivery price (in USD) for the following shipment:\n` +
+            `- Package Type: ${formData.packageType}\n` +
+            `- Delivery Date: ${formData.preferredDate}\n` +
+            `- Pickup Time: ${formData.pickupTime}\n` +
+            `- Dimensions: ${formData.dimensions}\n` +
+            `- Description: ${formData.description}\n` +
+            `Based on these details, provide a concise price estimation with a brief explanation.`;
 
-        return () => {
-            window.clearTimeout(timeoutId);
-        };
-    }, []);
+        apiService.post<{ result?: string; message?: string } | string>('/aiprice', { message })
+            .then((response) => {
+                const data = response.data;
+                const result =
+                    typeof data === 'string'
+                        ? data
+                        : (data as { result?: string; message?: string }).result ??
+                          (data as { result?: string; message?: string }).message ??
+                          'No estimate available.';
+                setBudgetInsight(result);
+                budgetInsightCacheRef.current = { key: cacheKey, result };
+            })
+            .catch(() => {
+                setBudgetInsight('Unable to estimate price at this time. Please enter your budget manually.');
+            })
+            .finally(() => {
+                setIsGeneratingBudgetInsight(false);
+            });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentStep]);
 
     useEffect(() => {
         return () => {

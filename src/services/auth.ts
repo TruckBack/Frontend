@@ -56,21 +56,32 @@ export const authService = {
     return !!storage.getAccessToken();
   },
 
+  async changePassword(_currentPassword: string, _newPassword: string): Promise<void> {
+    // TODO: No password change endpoint exists in the API spec yet.
+    throw new Error('Password change is not yet supported. Please contact support.');
+  },
+
   // These are not in the openapi spec, so they will likely fail if used.
   // Keeping them for now to avoid breaking the UI immediately.
-  async loginWithGoogle(role: UserRole = 'customer'): Promise<string> {
+  async loginWithGoogleToken(idToken: string, role: UserRole): Promise<User> {
+    // POST /auth/google — backend must verify the Google ID token and return a TokenResponse.
+    const response = await apiService.post<TokenResponse>('/auth/google', { id_token: idToken, role });
+    const { access_token, refresh_token } = response.data;
+    storage.setAccessToken(access_token);
+    storage.setRefreshToken(refresh_token);
+    const user = await this.getMe();
+    localStorage.setItem('user', JSON.stringify(user));
+    return user;
+  },
+
+  async loginWithGoogle(_role: UserRole = 'customer'): Promise<string> {
     // This endpoint does not exist in the provided spec.
     // This will need to be implemented in the backend.
     console.warn('loginWithGoogle is not implemented in the backend');
     return Promise.resolve('#');
   },
 
-  async loginWithFacebook(role: UserRole = 'customer'): Promise<string> {
-    // This endpoint does not exist in the provided spec.
-    // This will need to be implemented in the backend.
-    console.warn('loginWithFacebook is not implemented in the backend');
-    return Promise.resolve('#');
-  },
+  
 };
 
 export default authService;

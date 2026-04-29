@@ -1,21 +1,22 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider as MuiThemeProvider, CssBaseline } from '@mui/material';
-import { ThemeProvider, useAppTheme } from './contexts/ThemeContext';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import Login from './pages/auth/Login';
-import DriverHome from './pages/driver/DriverHome';
-import ActiveDeliveries from './pages/driver/ActiveDeliveries';
-import PastDeliveries from './pages/driver/PastDeliveries';
-import DriverMap from './pages/driver/DriverMap';
-import DriverProfile from './pages/driver/DriverProfile';
-import DriverChat from './pages/driver/DriverChat';
-import CustomerHome from './pages/customer/CustomerHome';
-import CustomerDashboard from './pages/customer/CustomerDashboard';
-import CustomerNewOrder from './pages/customer/CustomerNewOrder';
-import CustomerOrders from './pages/customer/CustomerOrders';
-import CustomerProfile from './pages/customer/CustomerProfile';
-import CustomerChat from './pages/customer/CustomerChat';
-import type { AccountRole } from './services/types';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ThemeProvider as MuiThemeProvider, CssBaseline } from "@mui/material";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import { ThemeProvider, useAppTheme } from "./contexts/ThemeContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import Login from "./pages/auth/Login";
+import DriverHome from "./pages/driver/DriverHome";
+import ActiveDeliveries from "./pages/driver/ActiveDeliveries";
+import PastDeliveries from "./pages/driver/PastDeliveries";
+import DriverMap from "./pages/driver/DriverFinder";
+import DriverProfile from "./pages/driver/DriverProfile";
+import DriverChat from "./pages/driver/DriverChat";
+import CustomerHome from "./pages/customer/CustomerHome";
+import CustomerDashboard from "./pages/customer/CustomerDashboard";
+import CustomerNewOrder from "./pages/customer/CustomerNewOrder";
+import CustomerOrders from "./pages/customer/CustomerOrders";
+import CustomerProfile from "./pages/customer/CustomerProfile";
+import CustomerChat from "./pages/customer/CustomerChat";
+import type { AccountRole } from "./services/types";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -44,7 +45,12 @@ const RoleHomeRedirect = () => {
     return <Navigate to="/login" replace />;
   }
 
-  return <Navigate to={user.role === 'driver' ? '/driver/home' : '/customer/home'} replace />;
+  return (
+    <Navigate
+      to={user.role === "driver" ? "/driver/home" : "/customer/home"}
+      replace
+    />
+  );
 };
 
 const RoleRoute = ({
@@ -76,23 +82,32 @@ const AppContent = () => {
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/login" element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            } />
-            <Route path="/" element={
-              <ProtectedRoute>
-                <RoleHomeRedirect />
-              </ProtectedRoute>
-            } />
-            <Route path="/driver" element={
-              <ProtectedRoute>
-                <RoleRoute role="driver">
-                  <DriverHome />
-                </RoleRoute>
-              </ProtectedRoute>
-            }>
+            <Route
+              path="/login"
+              element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <RoleHomeRedirect />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/driver"
+              element={
+                <ProtectedRoute>
+                  <RoleRoute role="driver">
+                    <DriverHome />
+                  </RoleRoute>
+                </ProtectedRoute>
+              }
+            >
               <Route path="home" element={<ActiveDeliveries />} />
               <Route path="past" element={<PastDeliveries />} />
               <Route path="map" element={<DriverMap />} />
@@ -101,13 +116,16 @@ const AppContent = () => {
               <Route path="chat/:orderId" element={<DriverChat />} />
               <Route index element={<Navigate to="home" replace />} />
             </Route>
-            <Route path="/customer" element={
-              <ProtectedRoute>
-                <RoleRoute role="customer">
-                  <CustomerHome />
-                </RoleRoute>
-              </ProtectedRoute>
-            }>
+            <Route
+              path="/customer"
+              element={
+                <ProtectedRoute>
+                  <RoleRoute role="customer">
+                    <CustomerHome />
+                  </RoleRoute>
+                </ProtectedRoute>
+              }
+            >
               <Route path="home" element={<CustomerDashboard />} />
               <Route path="new-order" element={<CustomerNewOrder />} />
               <Route path="orders" element={<CustomerOrders />} />
@@ -126,9 +144,11 @@ const AppContent = () => {
 
 function App() {
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </GoogleOAuthProvider>
   );
 }
 

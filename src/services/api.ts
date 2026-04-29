@@ -55,6 +55,11 @@ apiService.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    // Auth endpoints returning 401 mean bad credentials — don't attempt token refresh
+    if (originalRequest.url?.startsWith('/auth/')) {
+      return Promise.reject(error);
+    }
+
     if (isRefreshing) {
       return new Promise<string>((resolve, reject) => {
         failedQueue.push({ resolve, reject });

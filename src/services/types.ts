@@ -53,6 +53,7 @@ export interface DriverRegister extends CustomerRegister {
 export interface LoginRequest {
     email: string;
     password?: string;
+    role?: UserRole;
 }
 
 export interface UserUpdate {
