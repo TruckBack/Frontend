@@ -138,6 +138,7 @@ export function useNewOrderFlow() {
     const [isGeneratingBudgetInsight, setIsGeneratingBudgetInsight] = useState(true);
     const [budgetInsight, setBudgetInsight] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSubmitted, setIsSubmitted] = useState(false);
 
     useEffect(() => {
         if (currentStep !== 3) return;
@@ -281,7 +282,7 @@ export function useNewOrderFlow() {
                 }
 
                 await orderService.createOrder(orderPayload);
-                // Handle successful submission, e.g., redirect or show success message
+                setIsSubmitted(true);
                 console.info('Successfully submitted new order:', orderPayload);
             } catch (error) {
                 console.error('Failed to submit order:', error);
@@ -360,6 +361,7 @@ export function useNewOrderFlow() {
         budgetInsight,
         isGeneratingBudgetInsight,
         isSubmitting,
+        isSubmitted,
         setFormField,
         handlePackageDescriptionChange,
         handlePackageDescriptionBlur,

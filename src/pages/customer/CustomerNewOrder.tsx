@@ -2,8 +2,11 @@ import {
     Box,
     Button,
     Stack,
+    Typography,
     useTheme,
 } from '@mui/material';
+import { CheckCircleOutline } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import OrderStepProgress from '../../components/customer/new-order/OrderStepProgress';
 import NewOrderLocationStep from '../../components/customer/new-order/NewOrderLocationStep';
 import NewOrderPackageStep from '../../components/customer/new-order/NewOrderPackageStep';
@@ -15,6 +18,7 @@ import PageHeader from '../../components/shared/PageHeader';
 
 const CustomerNewOrder = () => {
     const theme = useTheme();
+    const navigate = useNavigate();
     const {
         imageInputRef,
         currentStep,
@@ -35,7 +39,55 @@ const CustomerNewOrder = () => {
         handleStepChange,
         handleImageAttachmentClick,
         handleImageAttachmentChange,
+        isSubmitted,
     } = useNewOrderFlow();
+
+    if (isSubmitted) {
+        return (
+            <Box
+                sx={{
+                    width: '100%',
+                    maxWidth: 480,
+                    mx: 'auto',
+                    px: { xs: 2, sm: 3 },
+                    py: 8,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    gap: 3,
+                }}
+            >
+                <CheckCircleOutline sx={{ fontSize: 80, color: 'success.main' }} />
+                <Stack spacing={1}>
+                    <Typography variant="h5" fontWeight={700}>
+                        Order Submitted!
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary">
+                        Your delivery request has been placed. Drivers will be notified and can accept your order shortly.
+                    </Typography>
+                </Stack>
+                <Stack direction="row" spacing={1.5}>
+                    <Button
+                        variant="outlined"
+                        size="large"
+                        sx={{ borderRadius: 2 }}
+                        onClick={() => navigate('/customer/orders')}
+                    >
+                        View My Orders
+                    </Button>
+                    <Button
+                        variant="contained"
+                        size="large"
+                        sx={{ borderRadius: 2 }}
+                        onClick={() => navigate('/customer/home')}
+                    >
+                        Go Home
+                    </Button>
+                </Stack>
+            </Box>
+        );
+    }
 
     return (
         <Box
