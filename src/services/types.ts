@@ -105,6 +105,7 @@ export interface Order {
     cargo_description?: string | null;
     cargo_weight_kg?: number | null;
     notes?: string | null;
+    cargo_image_url?: string | null;
     price_cents: number;
     currency: string;
     accepted_at?: string | null;
@@ -143,6 +144,7 @@ export interface OrderUpdate {
     notes?: string | null;
     price_cents?: number;
     currency?: string;
+    cargo_image_url?: string | null;
 }
 
 export interface OrderCancel {

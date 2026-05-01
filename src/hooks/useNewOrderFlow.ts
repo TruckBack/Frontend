@@ -3,6 +3,7 @@ import type { ChangeEvent } from 'react';
 import { ORDER_STEPS } from '../components/customer/new-order/orderSteps';
 import apiService from '../services/api';
 import { orderService } from '../services/order';
+import { uploadService } from '../services/upload';
 import type { OrderCreate } from '../services/types';
 
 export interface NewOrderFormData {
@@ -264,24 +265,28 @@ export function useNewOrderFlow() {
                 // In a real app, you'd use a geocoding service.
                 const orderPayload: OrderCreate = {
                     pickup_address: formData.pickupAddress,
-                    pickup_lat: 34.0522, // Placeholder
-                    pickup_lng: -118.2437, // Placeholder
+                    pickup_lat: 34.0522,
+                    pickup_lng: -118.2437,
                     dropoff_address: formData.deliveryAddress,
-                    dropoff_lat: 34.0522, // Placeholder
-                    dropoff_lng: -118.2437, // Placeholder
+                    dropoff_lat: 34.0522,
+                    dropoff_lng: -118.2437,
                     cargo_description: formData.description,
                     cargo_weight_kg: parseFloat(formData.weightKg),
                     notes: `Dimensions: ${formData.dimensions}, Package Type: ${formData.packageType}`,
                     price_cents: Math.round(parseFloat(formData.budget) * 100),
                 };
 
-                // TODO: Handle image upload with uploadService
-                // For now, we just log the file
+                const order = await orderService.createOrder(orderPayload);
+
                 if (attachmentFile) {
-                    console.info('Attached file:', attachmentFile.name);
+                    try {
+                        const { cargo_image_url } = await uploadService.uploadOrderImage(order.id, attachmentFile);
+                        await orderService.updateOrder(order.id, { cargo_image_url });
+                    } catch (uploadError) {
+                        console.error('Failed to upload order image:', uploadError);
+                    }
                 }
 
-                await orderService.createOrder(orderPayload);
                 setIsSubmitted(true);
                 console.info('Successfully submitted new order:', orderPayload);
             } catch (error) {

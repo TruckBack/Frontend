@@ -8,6 +8,7 @@ import {
 import DeliveryCard, { type Delivery } from '../../components/driver/DeliveryCard';
 import PageHeader from '../../components/shared/PageHeader';
 import DeliveryFilters from '../../components/driver/deliveries/DeliveryFilters';
+import OrderDetailDialog from '../../components/shared/OrderDetailDialog';
 import { useDeliveryFiltering } from '../../hooks/useDeliveryFiltering';
 import { orderService } from '../../services/order';
 import type { Order } from '../../services/types';
@@ -49,6 +50,7 @@ const ActiveDeliveries = () => {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
 
     const fetchDeliveries = async () => {
         try {
@@ -70,14 +72,21 @@ const ActiveDeliveries = () => {
         fetchDeliveries();
     }, []);
 
-    const handleAction = async (action: (orderId: number) => Promise<any>, orderId: string) => {
+    const handleAction = async (action: (orderId: number) => Promise<unknown>, orderId: string) => {
         try {
             await action(Number(orderId));
-            fetchDeliveries(); // Refetch to update the list
+            fetchDeliveries();
         } catch (error) {
             console.error(`Failed to perform action on order ${orderId}:`, error);
-            // Optionally show an error to the user
         }
+    };
+
+    const handleViewDetails = (id: string) => {
+        setSelectedOrderId(Number(id));
+    };
+
+    const handleChat = (orderId: number) => {
+        window.location.href = `/driver/chat/${orderId}`;
     };
 
     const deliveries = orders.map(mapOrderToDelivery);
@@ -98,6 +107,7 @@ const ActiveDeliveries = () => {
     }
 
     return (
+        <>
         <Box
             sx={{
                 width: '100%',
@@ -139,6 +149,7 @@ const ActiveDeliveries = () => {
                         <DeliveryCard
                             key={delivery.id}
                             delivery={delivery}
+                            onViewDetails={handleViewDetails}
                             onAccept={(id) => handleAction(orderService.acceptOrder, id)}
                             onStart={(id) => handleAction(orderService.startOrder, id)}
                             onPickup={(id) => handleAction(orderService.pickupOrder, id)}
@@ -148,6 +159,20 @@ const ActiveDeliveries = () => {
                 </Stack>
             </Box>
         </Box>
+
+        <OrderDetailDialog
+            key={selectedOrderId ?? 'closed'}
+            orderId={selectedOrderId}
+            open={selectedOrderId !== null}
+            onClose={() => setSelectedOrderId(null)}
+            role="driver"
+            onAccept={(id) => handleAction(orderService.acceptOrder, String(id)).then(fetchDeliveries)}
+            onStart={(id) => handleAction(orderService.startOrder, String(id)).then(fetchDeliveries)}
+            onPickup={(id) => handleAction(orderService.pickupOrder, String(id)).then(fetchDeliveries)}
+            onComplete={(id) => handleAction(orderService.completeOrder, String(id)).then(fetchDeliveries)}
+            onChat={handleChat}
+        />
+        </>
     );
 };
 

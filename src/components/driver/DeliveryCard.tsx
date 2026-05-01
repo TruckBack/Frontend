@@ -3,12 +3,15 @@ import {
     Button,
     Card,
     Chip,
+    IconButton,
     Stack,
+    Tooltip,
     Typography,
     useTheme,
 } from '@mui/material';
 import {
     FavoriteBorder,
+    VisibilityOutlined,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -32,13 +35,14 @@ export interface Delivery {
 
 interface DeliveryCardProps {
     delivery: Delivery;
+    onViewDetails?: (id: string) => void;
     onAccept?: (id: string) => void;
     onStart?: (id: string) => void;
     onPickup?: (id: string) => void;
     onComplete?: (id: string) => void;
 }
 
-const DeliveryCard = ({ delivery, onAccept, onStart, onPickup, onComplete }: DeliveryCardProps) => {
+const DeliveryCard = ({ delivery, onViewDetails, onAccept, onStart, onPickup, onComplete }: DeliveryCardProps) => {
     const theme = useTheme();
     const navigate = useNavigate();
     const statusColor = getDriverDeliveryStatusColor(delivery.status, theme.palette);
@@ -208,6 +212,19 @@ const DeliveryCard = ({ delivery, onAccept, onStart, onPickup, onComplete }: Del
                 }}
             >
                 {renderActionButtons()}
+                <Tooltip title="View Details">
+                    <IconButton
+                        size="small"
+                        onClick={() => onViewDetails?.(delivery.id)}
+                        sx={{
+                            flex: '0 0 auto',
+                            border: 1,
+                            borderColor: 'divider',
+                        }}
+                    >
+                        <VisibilityOutlined fontSize="small" />
+                    </IconButton>
+                </Tooltip>
                 <Button
                     variant="contained"
                     color="secondary"

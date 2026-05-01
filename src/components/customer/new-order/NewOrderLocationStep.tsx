@@ -1,4 +1,4 @@
-import { CalendarToday, LocationOn } from '@mui/icons-material';
+import { LocationOn } from '@mui/icons-material';
 import { Card, InputAdornment, Stack, TextField, Typography } from '@mui/material';
 import type { NewOrderFieldErrors, NewOrderFormData } from '../../../hooks/useNewOrderFlow';
 

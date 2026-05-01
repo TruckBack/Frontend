@@ -1,4 +1,4 @@
-import { DeleteOutline, EditOutlined, Place } from '@mui/icons-material';
+import { DeleteOutline, EditOutlined, Place, VisibilityOutlined } from '@mui/icons-material';
 import { Button, Card, Chip, IconButton, Stack, Tooltip, Typography, useTheme } from '@mui/material';
 import { getCustomerOrderStatusColor, getCustomerOrderStatusLabel, type CustomerOrderStatus } from '../../../utils/statusUtils';
 
@@ -19,11 +19,12 @@ export interface CustomerOrder {
 interface CustomerOrderCardProps {
     order: CustomerOrder;
     onOpenChat: (order: CustomerOrder) => void;
+    onViewDetails?: (order: CustomerOrder) => void;
     onEdit?: (order: CustomerOrder) => void;
     onDelete?: (order: CustomerOrder) => void;
 }
 
-export default function CustomerOrderCard({ order, onOpenChat, onEdit, onDelete }: CustomerOrderCardProps) {
+export default function CustomerOrderCard({ order, onOpenChat, onViewDetails, onEdit, onDelete }: CustomerOrderCardProps) {
     const theme = useTheme();
     const canModify = order.status === 'pending';
 
@@ -149,6 +150,19 @@ export default function CustomerOrderCard({ order, onOpenChat, onEdit, onDelete 
                     >
                         Chat
                     </Button>
+                    <Tooltip title="View Details">
+                        <IconButton
+                            size="small"
+                            onClick={() => onViewDetails?.(order)}
+                            sx={{
+                                flex: '0 0 auto',
+                                border: 1,
+                                borderColor: 'divider',
+                            }}
+                        >
+                            <VisibilityOutlined fontSize="small" />
+                        </IconButton>
+                    </Tooltip>
                 </Stack>
             </Stack>
         </Card>

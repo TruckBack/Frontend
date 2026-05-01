@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import PageHeader from '../../components/shared/PageHeader';
 import OrderStatsRow from '../../components/customer/orders/OrderStatsRow';
 import OrderFilters from '../../components/customer/orders/OrderFilters';
+import OrderDetailDialog from '../../components/shared/OrderDetailDialog';
 import CustomerOrderCard, { type CustomerOrder } from '../../components/customer/orders/CustomerOrderCard';
 import { useOrderFiltering } from '../../hooks/useOrderFiltering';
 import { orderService } from '../../services/order';
@@ -75,6 +76,9 @@ export default function CustomerOrders() {
     const [deletingOrder, setDeletingOrder] = useState<Order | null>(null);
     const [deleteInProgress, setDeleteInProgress] = useState(false);
 
+    // Detail dialog state
+    const [detailOrderId, setDetailOrderId] = useState<number | null>(null);
+
     useEffect(() => {
         const fetchOrders = async () => {
             try {
@@ -111,6 +115,10 @@ export default function CustomerOrders() {
                 driverName: order.driverName,
             },
         });
+    };
+
+    const handleViewDetails = (order: CustomerOrder) => {
+        setDetailOrderId(Number(order.id));
     };
 
     const handleOpenEdit = (customerOrder: CustomerOrder) => {
@@ -205,6 +213,7 @@ export default function CustomerOrders() {
                             key={order.id}
                             order={order}
                             onOpenChat={handleOpenChat}
+                            onViewDetails={handleViewDetails}
                             onEdit={handleOpenEdit}
                             onDelete={handleOpenDelete}
                         />
@@ -288,6 +297,18 @@ export default function CustomerOrders() {
                 </Button>
             </DialogActions>
         </Dialog>
+
+        <OrderDetailDialog
+            key={detailOrderId ?? 'closed'}
+            orderId={detailOrderId}
+            open={detailOrderId !== null}
+            onClose={() => setDetailOrderId(null)}
+            role="customer"
+            onChat={(_orderId: number) => {
+                const customerOrder = customerOrders.find(o => Number(o.id) === _orderId);
+                if (customerOrder) handleOpenChat(customerOrder);
+            }}
+        />
         </>
     );
 }

@@ -7,11 +7,19 @@ export const uploadService = {
     },
 
     async uploadFile(url: string, file: File, headers: Record<string, string>): Promise<void> {
-        // Use native fetch so the apiService auth interceptor doesn't inject
-        // an Authorization header into presigned storage upload requests.
         const response = await fetch(url, { method: 'PUT', body: file, headers });
         if (!response.ok) {
             throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
         }
-    }
+    },
+
+    uploadOrderImage(orderId: number, file: File): Promise<{ cargo_image_url: string }> {
+        const formData = new FormData();
+        formData.append('file', file);
+        return apiService
+            .post(`/uploads/image/order/${orderId}`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            })
+            .then(res => res.data);
+    },
 };
