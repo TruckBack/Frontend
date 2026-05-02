@@ -23,7 +23,6 @@ interface AuthContextType {
   ) => Promise<void>;
   logout: () => Promise<void>;
   loginWithGoogle: (role: UserRole) => Promise<void>;
-  loginWithFacebook: (role: UserRole) => Promise<void>;
   loginWithGoogleToken: (idToken: string, role: UserRole) => Promise<void>;
   updateUser: (data: UserUpdate) => Promise<void>;
 }
@@ -91,13 +90,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(user);
   };
 
-  const loginWithFacebook = async (role: UserRole) => {
-    const url = await authService.loginWithFacebook(role);
-    if (url !== "#") {
-      window.location.href = url;
-    }
-  };
-
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
@@ -106,7 +98,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     register,
     logout,
     loginWithGoogle,
-    loginWithFacebook,
     loginWithGoogleToken,
     updateUser,
   };

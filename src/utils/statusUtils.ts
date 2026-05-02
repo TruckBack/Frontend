@@ -1,6 +1,6 @@
 import type { Palette } from '@mui/material/styles';
 
-export type CustomerOrderStatus = 'pending' | 'in-transit' | 'delivered';
+export type CustomerOrderStatus = 'pending' | 'in-transit' | 'delivered' | 'cancelled';
 export type DriverDeliveryStatus = 'pending' | 'accepted' | 'in-progress' | 'picked-up' | 'completed' | 'cancelled';
 
 export function getCustomerOrderStatusColor(status: CustomerOrderStatus, palette: Palette) {
@@ -11,6 +11,8 @@ export function getCustomerOrderStatusColor(status: CustomerOrderStatus, palette
             return palette.primary.main;
         case 'delivered':
             return palette.success.main;
+        case 'cancelled':
+            return palette.error.main;
         default:
             return palette.divider;
     }
@@ -24,6 +26,8 @@ export function getCustomerOrderStatusLabel(status: CustomerOrderStatus) {
             return 'In Transit';
         case 'delivered':
             return 'Delivered';
+        case 'cancelled':
+            return 'Cancelled';
         default:
             return status;
     }
