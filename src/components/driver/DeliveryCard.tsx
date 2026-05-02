@@ -3,6 +3,7 @@ import {
   Button,
   Card,
   Chip,
+  CircularProgress,
   IconButton,
   Stack,
   Tooltip,
@@ -37,6 +38,8 @@ interface DeliveryCardProps {
   onStart?: (id: string) => void;
   onPickup?: (id: string) => void;
   onComplete?: (id: string) => void;
+  /** True while an accept request for this card is in-flight. */
+  accepting?: boolean;
 }
 
 const DeliveryCard = ({
@@ -46,6 +49,7 @@ const DeliveryCard = ({
   onStart,
   onPickup,
   onComplete,
+  accepting = false,
 }: DeliveryCardProps) => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -63,9 +67,15 @@ const DeliveryCard = ({
             color="primary"
             size="small"
             fullWidth
+            disabled={accepting}
             onClick={() => onAccept?.(delivery.id)}
+            startIcon={
+              accepting ? (
+                <CircularProgress size={14} color="inherit" />
+              ) : undefined
+            }
           >
-            Accept
+            {accepting ? "Accepting…" : "Accept"}
           </Button>
         );
       case "accepted":

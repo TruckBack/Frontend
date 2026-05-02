@@ -1,11 +1,19 @@
 import { useEffect, useState } from "react";
-import { Box, CircularProgress, Stack, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  CircularProgress,
+  Snackbar,
+  Stack,
+  Typography,
+} from "@mui/material";
 import PageHeader from "../../components/shared/PageHeader";
 import DeliveryCard, {
   type Delivery,
 } from "../../components/driver/DeliveryCard";
 import { orderService } from "../../services/order";
-import type { Order } from "../../services/types";
+import { driverService } from "../../services/driver";
+import type { Order, DriverStatus } from "../../services/types";
 
 const mapOrderToDelivery = (order: Order): Delivery => ({
   id: String(order.id),
@@ -24,6 +32,16 @@ const DriverFinder = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [driverStatus, setDriverStatus] = useState<DriverStatus | null>(null);
+  const [acceptingId, setAcceptingId] = useState<string | null>(null);
+  const [snack, setSnack] = useState<{
+    open: boolean;
+    severity: "success" | "error" | "warning";
+    message: string;
+  }>({ open: false, severity: "success", message: "" });
+
+  const showSnack = (severity: typeof snack.severity, message: string) =>
+    setSnack({ open: true, severity, message });
 
   const fetchAvailableOrders = async () => {
     try {
@@ -40,14 +58,46 @@ const DriverFinder = () => {
 
   useEffect(() => {
     fetchAvailableOrders();
+    driverService
+      .getMyProfile()
+      .then((profile) => setDriverStatus(profile.status))
+      .catch(() => {
+        /* status check is best-effort */
+      });
   }, []);
 
   const handleAccept = async (id: string) => {
+    if (driverStatus === "offline") {
+      showSnack(
+        "warning",
+        "You're currently offline. Switch to Available from your Active Deliveries page before accepting orders.",
+      );
+      return;
+    }
+
+    setAcceptingId(id);
     try {
       await orderService.acceptOrder(Number(id));
-      fetchAvailableOrders();
+      showSnack(
+        "success",
+        "Order accepted! Check your Active Deliveries to get started.",
+      );
+      await fetchAvailableOrders();
     } catch (err) {
+      const detail =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { detail?: string } } }).response
+              ?.data?.detail
+          : undefined;
+      showSnack(
+        "error",
+        typeof detail === "string"
+          ? detail
+          : "Failed to accept the order. Please try again.",
+      );
       console.error(`Failed to accept order ${id}:`, err);
+    } finally {
+      setAcceptingId(null);
     }
   };
 
@@ -94,10 +144,26 @@ const DriverFinder = () => {
               key={order.id}
               delivery={mapOrderToDelivery(order)}
               onAccept={handleAccept}
+              accepting={acceptingId === String(order.id)}
             />
           ))}
         </Stack>
       )}
+
+      <Snackbar
+        open={snack.open}
+        autoHideDuration={5000}
+        onClose={() => setSnack((s) => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          severity={snack.severity}
+          onClose={() => setSnack((s) => ({ ...s, open: false }))}
+          sx={{ width: "100%" }}
+        >
+          {snack.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
