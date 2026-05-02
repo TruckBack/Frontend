@@ -177,8 +177,8 @@ export function useNewOrderFlow() {
                     typeof data === 'string'
                         ? data
                         : (data as { result?: string; message?: string }).result ??
-                          (data as { result?: string; message?: string }).message ??
-                          'No estimate available.';
+                        (data as { result?: string; message?: string }).message ??
+                        'No estimate available.';
                 setBudgetInsight(result);
                 budgetInsightCacheRef.current = { key: cacheKey, result };
             })
@@ -188,7 +188,7 @@ export function useNewOrderFlow() {
             .finally(() => {
                 setIsGeneratingBudgetInsight(false);
             });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentStep]);
 
     useEffect(() => {
@@ -280,8 +280,7 @@ export function useNewOrderFlow() {
 
                 if (attachmentFile) {
                     try {
-                        const { cargo_image_url } = await uploadService.uploadOrderImage(order.id, attachmentFile);
-                        await orderService.updateOrder(order.id, { cargo_image_url });
+                        await uploadService.uploadOrderImage(order.id, attachmentFile);
                     } catch (uploadError) {
                         console.error('Failed to upload order image:', uploadError);
                     }

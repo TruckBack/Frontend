@@ -17,7 +17,7 @@ import {
   SaveOutlined,
 } from "@mui/icons-material";
 import { useAuth } from "../../contexts/AuthContext";
-import { uploadService } from "../../services/upload";
+import { uploadService, resolveImageUrl } from "../../services/upload";
 import authService from "../../services/auth";
 
 const CustomerProfile = () => {
@@ -26,7 +26,7 @@ const CustomerProfile = () => {
   const [fullName, setFullName] = useState(user?.full_name ?? "");
   const [phone, setPhone] = useState(user?.phone ?? "");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(
-    user?.profile_image_url ?? null,
+    resolveImageUrl(user?.profile_image_url) ?? null,
   );
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
@@ -57,20 +57,17 @@ const CustomerProfile = () => {
     try {
       let profileImageUrl = user?.profile_image_url ?? null;
       if (avatarFile) {
-        const { upload_url, headers, public_url } =
-          await uploadService.getPresignedProfileImageUploadUrl({
-            filename: avatarFile.name,
-            content_type: avatarFile.type,
-          });
-        await uploadService.uploadFile(upload_url, avatarFile, headers);
-        profileImageUrl = public_url;
+        const { profile_image_url } =
+          await uploadService.uploadProfileImage(avatarFile);
+        profileImageUrl = profile_image_url;
+        setAvatarPreview(resolveImageUrl(profile_image_url) ?? null);
+        setAvatarFile(null);
       }
       await updateUser({
         full_name: fullName || null,
         phone: phone || null,
         profile_image_url: profileImageUrl,
       });
-      setAvatarFile(null);
       setProfileSuccess(true);
     } catch (err) {
       setProfileError(
@@ -157,7 +154,7 @@ const CustomerProfile = () => {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               hidden
               onChange={handleAvatarChange}
             />

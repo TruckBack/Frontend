@@ -158,20 +158,6 @@ export interface Page<T> {
     offset: number;
 }
 
-export interface PresignedUploadRequest {
-    filename: string;
-    content_type: string;
-}
-
-export interface PresignedUploadResponse {
-    upload_url: string;
-    method?: string;
-    headers: Record<string, string>;
-    key: string;
-    public_url: string;
-    expires_in: number;
-}
-
 export interface ValidationError {
     loc: (string | number)[];
     msg: string;
