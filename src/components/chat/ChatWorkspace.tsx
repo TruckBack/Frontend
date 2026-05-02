@@ -24,7 +24,6 @@ interface ChatWorkspaceProps {
 }
 
 const ChatWorkspace = ({
-  role,
   title,
   subtitle,
   basePath,
