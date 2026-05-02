@@ -3,6 +3,7 @@ import {
     Alert,
     Avatar,
     Box,
+    CircularProgress,
     Divider,
     List,
     ListItemButton,
@@ -11,25 +12,26 @@ import {
     Stack,
     Typography,
 } from '@mui/material';
-import type { AccountRole } from '../../../services/types';
-import type { ChatConversationSummary } from '../../../services/chat';
+import type { ConversationSummary } from '../../../services/chat';
 import { formatChatTime } from './chatFormatters';
 
 interface ChatInboxPanelProps {
     title: string;
     subtitle: string;
     emptyMessage: string;
-    role: AccountRole;
-    selectedOrderId: string | null;
-    conversations: ChatConversationSummary[];
-    onOpenConversation: (conversation: ChatConversationSummary) => void;
+    loading: boolean;
+    error: string | null;
+    selectedOrderId: number | null;
+    conversations: ConversationSummary[];
+    onOpenConversation: (conversation: ConversationSummary) => void;
 }
 
 export default function ChatInboxPanel({
     title,
     subtitle,
     emptyMessage,
-    role,
+    loading,
+    error,
     selectedOrderId,
     conversations,
     onOpenConversation,
@@ -57,15 +59,25 @@ export default function ChatInboxPanel({
                 </Stack>
             </Box>
             <Divider />
-            {conversations.length > 0 ? (
+            {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                    <CircularProgress size={28} />
+                </Box>
+            ) : error ? (
+                <Box sx={{ p: 3 }}>
+                    <Alert severity="error">{error}</Alert>
+                </Box>
+            ) : conversations.length > 0 ? (
                 <List disablePadding sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
                     {conversations.map((conversation) => {
-                        const unread = conversation.unreadCount[role];
+                        const unread = conversation.unread_count;
+                        const lastBody = conversation.last_message?.body ?? 'No messages yet';
+                        const lastTime = conversation.updated_at;
 
                         return (
                             <ListItemButton
-                                key={conversation.orderId}
-                                selected={conversation.orderId === selectedOrderId}
+                                key={conversation.id}
+                                selected={conversation.order_id === selectedOrderId}
                                 onClick={() => onOpenConversation(conversation)}
                                 sx={{ alignItems: 'flex-start', py: 1.5, px: 2 }}
                             >
@@ -77,42 +89,38 @@ export default function ChatInboxPanel({
                                     primary={
                                         <Stack direction="row" justifyContent="space-between" spacing={1}>
                                             <Typography variant="subtitle2" fontWeight={700}>
-                                                {conversation.orderTitle}
+                                                Order #{conversation.order_id}
                                             </Typography>
                                             <Typography variant="caption" color="text.secondary">
-                                                {formatChatTime(conversation.lastMessageAt)}
+                                                {formatChatTime(lastTime)}
                                             </Typography>
                                         </Stack>
                                     }
                                     secondary={
                                         <Stack spacing={0.4} sx={{ mt: 0.5 }}>
                                             <Typography variant="body2" color="text.secondary" noWrap>
-                                                {conversation.lastMessage}
+                                                {lastBody}
                                             </Typography>
-                                            <Stack direction="row" justifyContent="space-between" alignItems="center">
-                                                <Typography variant="caption" color="text.secondary">
-                                                    {conversation.partnerName}
-                                                </Typography>
-                                                {unread > 0 ? (
-                                                    <Box
-                                                        sx={{
-                                                            minWidth: 22,
-                                                            height: 22,
-                                                            px: 0.8,
-                                                            borderRadius: 99,
-                                                            bgcolor: 'error.main',
-                                                            color: 'common.white',
-                                                            display: 'inline-flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            fontSize: '0.7rem',
-                                                            fontWeight: 700,
-                                                        }}
-                                                    >
-                                                        {unread}
-                                                    </Box>
-                                                ) : null}
-                                            </Stack>
+                                            {unread > 0 ? (
+                                                <Box
+                                                    sx={{
+                                                        alignSelf: 'flex-end',
+                                                        minWidth: 22,
+                                                        height: 22,
+                                                        px: 0.8,
+                                                        borderRadius: 99,
+                                                        bgcolor: 'error.main',
+                                                        color: 'common.white',
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        fontSize: '0.7rem',
+                                                        fontWeight: 700,
+                                                    }}
+                                                >
+                                                    {unread}
+                                                </Box>
+                                            ) : null}
                                         </Stack>
                                     }
                                 />
