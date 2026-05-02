@@ -1,179 +1,212 @@
-import { useEffect, useState } from 'react';
-import {
-    Box,
-    Stack,
-    CircularProgress,
-    Typography,
-} from '@mui/material';
-import DeliveryCard, { type Delivery } from '../../components/driver/DeliveryCard';
-import PageHeader from '../../components/shared/PageHeader';
-import DeliveryFilters from '../../components/driver/deliveries/DeliveryFilters';
-import OrderDetailDialog from '../../components/shared/OrderDetailDialog';
-import { useDeliveryFiltering } from '../../hooks/useDeliveryFiltering';
-import { orderService } from '../../services/order';
-import type { Order } from '../../services/types';
+import { useEffect, useState } from "react";
+import { Box, Stack, CircularProgress, Typography } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import DeliveryCard, {
+  type Delivery,
+} from "../../components/driver/DeliveryCard";
+import PageHeader from "../../components/shared/PageHeader";
+import DeliveryFilters from "../../components/driver/deliveries/DeliveryFilters";
+import DriverStatusToggle from "../../components/driver/DriverStatusToggle";
+import OrderDetailDialog from "../../components/shared/OrderDetailDialog";
+import { useDeliveryFiltering } from "../../hooks/useDeliveryFiltering";
+import { orderService } from "../../services/order";
+import type { Order } from "../../services/types";
 
-const mapOrderStatusToDeliveryStatus = (status: Order['status']): Delivery['status'] => {
-    switch (status) {
-        case 'pending':
-            return 'pending';
-        case 'accepted':
-            return 'accepted';
-        case 'in_progress':
-            return 'in-progress';
-        case 'picked_up':
-            return 'picked-up';
-        case 'completed':
-            return 'completed';
-        case 'cancelled':
-            return 'cancelled';
-        default:
-            return 'pending';
-    }
-}
+const mapOrderStatusToDeliveryStatus = (
+  status: Order["status"],
+): Delivery["status"] => {
+  switch (status) {
+    case "pending":
+      return "pending";
+    case "accepted":
+      return "accepted";
+    case "in_progress":
+      return "in-progress";
+    case "picked_up":
+      return "picked-up";
+    case "completed":
+      return "completed";
+    case "cancelled":
+      return "cancelled";
+    default:
+      return "pending";
+  }
+};
 
 const mapOrderToDelivery = (order: Order): Delivery => ({
-    id: String(order.id),
-    driverName: 'You', // This is the driver's view of their own deliveries
-    status: mapOrderStatusToDeliveryStatus(order.status),
-    price: order.price_cents / 100,
-    category: order.cargo_description || 'General',
-    weight: `${order.cargo_weight_kg || 0} kg`,
-    distance: 'N/A', // This would require calculation based on lat/lng
-    pickup: order.pickup_address,
-    dropoff: order.dropoff_address,
-    phone: '', // Customer phone not directly on order
+  id: String(order.id),
+  driverName: "You", // This is the driver's view of their own deliveries
+  status: mapOrderStatusToDeliveryStatus(order.status),
+  price: order.price_cents / 100,
+  category: order.cargo_description || "General",
+  weight: `${order.cargo_weight_kg || 0} kg`,
+  distance: "N/A", // This would require calculation based on lat/lng
+  pickup: order.pickup_address,
+  dropoff: order.dropoff_address,
+  phone: "", // Customer phone not directly on order
 });
 
-
 const ActiveDeliveries = () => {
-    const [orders, setOrders] = useState<Order[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+  const navigate = useNavigate();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
 
-    const fetchDeliveries = async () => {
-        try {
-            setLoading(true);
-            const [myActiveOrders, availableOrders] = await Promise.all([
-                orderService.listMyActiveOrders(),
-                orderService.listAvailableOrders()
-            ]);
-            setOrders([...myActiveOrders, ...availableOrders.items]);
-        } catch (err) {
-            setError('Failed to fetch deliveries.');
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchDeliveries();
-    }, []);
-
-    const handleAction = async (action: (orderId: number) => Promise<unknown>, orderId: string) => {
-        try {
-            await action(Number(orderId));
-            fetchDeliveries();
-        } catch (error) {
-            console.error(`Failed to perform action on order ${orderId}:`, error);
-        }
-    };
-
-    const handleViewDetails = (id: string) => {
-        setSelectedOrderId(Number(id));
-    };
-
-    const handleChat = (orderId: number) => {
-        window.location.href = `/driver/chat/${orderId}`;
-    };
-
-    const deliveries = orders.map(mapOrderToDelivery);
-
-    const {
-        selectedFilter,
-        setSelectedFilter,
-        counts,
-        filteredDeliveries,
-    } = useDeliveryFiltering(deliveries);
-
-    if (loading) {
-        return <CircularProgress sx={{ display: 'block', mx: 'auto', my: 4 }} />;
+  const fetchDeliveries = async () => {
+    try {
+      setLoading(true);
+      const [myActiveOrders, availableOrders] = await Promise.all([
+        orderService.listMyActiveOrders(),
+        orderService.listAvailableOrders(),
+      ]);
+      setOrders([...myActiveOrders, ...availableOrders.items]);
+    } catch (err) {
+      setError("Failed to fetch deliveries.");
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    if (error) {
-        return <Typography color="error" sx={{ textAlign: 'center', my: 4 }}>{error}</Typography>;
+  useEffect(() => {
+    fetchDeliveries();
+  }, []);
+
+  const handleAction = async (
+    action: (orderId: number) => Promise<unknown>,
+    orderId: string,
+  ) => {
+    try {
+      await action(Number(orderId));
+      fetchDeliveries();
+    } catch (error) {
+      console.error(`Failed to perform action on order ${orderId}:`, error);
     }
+  };
 
+  const handleViewDetails = (id: string) => {
+    setSelectedOrderId(Number(id));
+  };
+
+  const handleChat = (orderId: number) => {
+    const order = orders.find((o) => o.id === orderId);
+    navigate(`/driver/chat/${orderId}`, {
+      state: {
+        partnerName: "Customer",
+        orderTitle: order ? `Order #${order.id}` : `Order ${orderId}`,
+        customerName: "Customer",
+      },
+    });
+  };
+
+  const deliveries = orders.map(mapOrderToDelivery);
+
+  const { selectedFilter, setSelectedFilter, counts, filteredDeliveries } =
+    useDeliveryFiltering(deliveries);
+
+  if (loading) {
+    return <CircularProgress sx={{ display: "block", mx: "auto", my: 4 }} />;
+  }
+
+  if (error) {
     return (
-        <>
-        <Box
-            sx={{
-                width: '100%',
-                maxWidth: 680,
-                mx: 'auto',
-                px: { xs: 2, sm: 3 },
-                py: { xs: 2, sm: 3 },
-                boxSizing: 'border-box',
-                height: { xs: 'calc(100dvh - 56px)', md: '100dvh' },
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden',
-            }}
-        >
-            <PageHeader
-                title="Active Deliveries"
-                subtitle="Manage your current delivery jobs"
-            />
+      <Typography color="error" sx={{ textAlign: "center", my: 4 }}>
+        {error}
+      </Typography>
+    );
+  }
 
-            <DeliveryFilters
-                selectedFilter={selectedFilter}
-                allCount={counts.total}
-                acceptedCount={counts.accepted}
-                inProgressCount={counts.inProgress}
-                onSelectFilter={setSelectedFilter}
-            />
+  return (
+    <>
+      <Box
+        sx={{
+          width: "100%",
+          maxWidth: 680,
+          mx: "auto",
+          px: { xs: 2, sm: 3 },
+          py: { xs: 2, sm: 3 },
+          boxSizing: "border-box",
+          height: { xs: "calc(100dvh - 56px)", md: "100dvh" },
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        <PageHeader
+          title="Active Deliveries"
+          subtitle="Manage your current delivery jobs"
+        />
 
-            <Box
-                sx={{
-                    flex: 1,
-                    minHeight: 0,
-                    overflowY: 'auto',
-                    pr: { xs: 0, sm: 0.5 },
-                    pb: 1,
-                }}
-            >
-                <Stack spacing={2}>
-                    {filteredDeliveries.map((delivery) => (
-                        <DeliveryCard
-                            key={delivery.id}
-                            delivery={delivery}
-                            onViewDetails={handleViewDetails}
-                            onAccept={(id) => handleAction(orderService.acceptOrder, id)}
-                            onStart={(id) => handleAction(orderService.startOrder, id)}
-                            onPickup={(id) => handleAction(orderService.pickupOrder, id)}
-                            onComplete={(id) => handleAction(orderService.completeOrder, id)}
-                        />
-                    ))}
-                </Stack>
-            </Box>
+        <Box sx={{ mb: 2 }}>
+          <DriverStatusToggle />
         </Box>
 
-        <OrderDetailDialog
-            key={selectedOrderId ?? 'closed'}
-            orderId={selectedOrderId}
-            open={selectedOrderId !== null}
-            onClose={() => setSelectedOrderId(null)}
-            role="driver"
-            onAccept={(id) => handleAction(orderService.acceptOrder, String(id)).then(fetchDeliveries)}
-            onStart={(id) => handleAction(orderService.startOrder, String(id)).then(fetchDeliveries)}
-            onPickup={(id) => handleAction(orderService.pickupOrder, String(id)).then(fetchDeliveries)}
-            onComplete={(id) => handleAction(orderService.completeOrder, String(id)).then(fetchDeliveries)}
-            onChat={handleChat}
+        <DeliveryFilters
+          selectedFilter={selectedFilter}
+          allCount={counts.total}
+          acceptedCount={counts.accepted}
+          inProgressCount={counts.inProgress}
+          onSelectFilter={setSelectedFilter}
         />
-        </>
-    );
+
+        <Box
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            pr: { xs: 0, sm: 0.5 },
+            pb: 1,
+          }}
+        >
+          <Stack spacing={2}>
+            {filteredDeliveries.map((delivery) => (
+              <DeliveryCard
+                key={delivery.id}
+                delivery={delivery}
+                onViewDetails={handleViewDetails}
+                onAccept={(id) => handleAction(orderService.acceptOrder, id)}
+                onStart={(id) => handleAction(orderService.startOrder, id)}
+                onPickup={(id) => handleAction(orderService.pickupOrder, id)}
+                onComplete={(id) =>
+                  handleAction(orderService.completeOrder, id)
+                }
+              />
+            ))}
+          </Stack>
+        </Box>
+      </Box>
+
+      <OrderDetailDialog
+        key={selectedOrderId ?? "closed"}
+        orderId={selectedOrderId}
+        open={selectedOrderId !== null}
+        onClose={() => setSelectedOrderId(null)}
+        role="driver"
+        onAccept={(id) =>
+          handleAction(orderService.acceptOrder, String(id)).then(
+            fetchDeliveries,
+          )
+        }
+        onStart={(id) =>
+          handleAction(orderService.startOrder, String(id)).then(
+            fetchDeliveries,
+          )
+        }
+        onPickup={(id) =>
+          handleAction(orderService.pickupOrder, String(id)).then(
+            fetchDeliveries,
+          )
+        }
+        onComplete={(id) =>
+          handleAction(orderService.completeOrder, String(id)).then(
+            fetchDeliveries,
+          )
+        }
+        onChat={handleChat}
+      />
+    </>
+  );
 };
 
 export default ActiveDeliveries;

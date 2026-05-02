@@ -26,98 +26,8 @@ export interface ChatConversation extends ChatConversationSummary {
     messages: ChatMessage[];
 }
 
-const chatStore: ChatConversation[] = [
-    {
-        orderId: '1',
-        orderTitle: 'Furniture Delivery',
-        partnerName: 'Driver User',
-        customerId: 'customer-1',
-        customerName: 'Customer User',
-        driverId: 'driver-1',
-        driverName: 'Driver User',
-        lastMessage: 'I am arriving in 8 minutes.',
-        lastMessageAt: '2026-04-21T08:25:00.000Z',
-        unreadCount: { customer: 1, driver: 0 },
-        messages: [
-            {
-                id: 'm-1',
-                senderId: 'customer-1',
-                senderRole: 'customer',
-                body: 'Hi, can you confirm the pickup is still scheduled for 9:00 AM?',
-                createdAt: '2026-04-21T07:55:00.000Z',
-                readBy: { customer: true, driver: true },
-            },
-            {
-                id: 'm-2',
-                senderId: 'driver-1',
-                senderRole: 'driver',
-                body: 'Yes, I am on the way now and should arrive within 10 minutes.',
-                createdAt: '2026-04-21T08:05:00.000Z',
-                readBy: { customer: false, driver: true },
-            },
-            {
-                id: 'm-3',
-                senderId: 'driver-1',
-                senderRole: 'driver',
-                body: 'I am arriving in 8 minutes.',
-                createdAt: '2026-04-21T08:25:00.000Z',
-                readBy: { customer: false, driver: true },
-            },
-        ],
-    },
-    {
-        orderId: '2',
-        orderTitle: 'Electronics Delivery',
-        partnerName: 'Driver User',
-        customerId: 'customer-1',
-        customerName: 'Customer User',
-        driverId: 'driver-1',
-        driverName: 'Driver User',
-        lastMessage: 'Loaded and heading out now.',
-        lastMessageAt: '2026-04-20T16:10:00.000Z',
-        unreadCount: { customer: 0, driver: 0 },
-        messages: [
-            {
-                id: 'm-4',
-                senderId: 'customer-1',
-                senderRole: 'customer',
-                body: 'Please handle the package carefully. It is fragile.',
-                createdAt: '2026-04-20T15:55:00.000Z',
-                readBy: { customer: true, driver: true },
-            },
-            {
-                id: 'm-5',
-                senderId: 'driver-1',
-                senderRole: 'driver',
-                body: 'Loaded and heading out now.',
-                createdAt: '2026-04-20T16:10:00.000Z',
-                readBy: { customer: true, driver: true },
-            },
-        ],
-    },
-    {
-        orderId: '3',
-        orderTitle: 'Documents Delivery',
-        partnerName: 'Sarah Driver',
-        customerId: 'customer-1',
-        customerName: 'Customer User',
-        driverId: 'driver-2',
-        driverName: 'Sarah Driver',
-        lastMessage: 'Delivered to reception. Thanks!',
-        lastMessageAt: '2026-04-19T10:20:00.000Z',
-        unreadCount: { customer: 0, driver: 0 },
-        messages: [
-            {
-                id: 'm-6',
-                senderId: 'driver-2',
-                senderRole: 'driver',
-                body: 'Delivered to reception. Thanks!',
-                createdAt: '2026-04-19T10:20:00.000Z',
-                readBy: { customer: true, driver: true },
-            },
-        ],
-    },
-];
+// Conversations are created on demand when users navigate to /chat/:orderId.
+const chatStore: ChatConversation[] = [];
 
 type ChatStoreListener = () => void;
 
@@ -147,13 +57,12 @@ interface ConversationSeed {
     driverName?: string;
 }
 
-const canAccessConversation = (conversation: ChatConversation, role: AccountRole, userId: string) => {
-    if (role === 'customer') {
-        return conversation.customerId === userId;
-    }
-
-    return conversation.driverId === userId;
-};
+// The chat store is in-memory and shared across the whole session.
+// Both sides (customer + driver) of an order see the same conversation, so we
+// grant access to anyone who holds a reference to the orderId rather than
+// filtering by a specific userId that may not yet be recorded on the conversation.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const canAccessConversation = (_conversation: ChatConversation, _role: AccountRole, _userId: string) => true;
 
 const getConversationIndex = (orderId: string) => chatStore.findIndex((conversation) => conversation.orderId === orderId);
 
@@ -175,10 +84,10 @@ const createConversation = (role: AccountRole, userId: string, orderId: string, 
         orderId,
         orderTitle: seed.orderTitle ?? `Order ${orderId}`,
         partnerName,
-        customerId: role === 'customer' ? userId : 'customer-1',
-        customerName: seed.customerName ?? (role === 'customer' ? 'Customer User' : partnerName),
-        driverId: role === 'driver' ? userId : 'driver-1',
-        driverName: seed.driverName ?? (role === 'driver' ? 'Driver User' : partnerName),
+        customerId: role === 'customer' ? userId : (seed.customerName ? `customer-${seed.customerName}` : ''),
+        customerName: seed.customerName ?? (role === 'customer' ? 'Customer' : partnerName),
+        driverId: role === 'driver' ? userId : (seed.driverName ? `driver-${seed.driverName}` : ''),
+        driverName: seed.driverName ?? (role === 'driver' ? 'Driver' : partnerName),
         lastMessage: 'No messages yet',
         lastMessageAt: new Date().toISOString(),
         unreadCount: { customer: 0, driver: 0 },
