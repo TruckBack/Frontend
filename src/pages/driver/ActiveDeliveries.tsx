@@ -56,11 +56,8 @@ const ActiveDeliveries = () => {
   const fetchDeliveries = async () => {
     try {
       setLoading(true);
-      const [myActiveOrders, availableOrders] = await Promise.all([
-        orderService.listMyActiveOrders(),
-        orderService.listAvailableOrders(),
-      ]);
-      setOrders([...myActiveOrders, ...availableOrders.items]);
+      const myActiveOrders = await orderService.listMyActiveOrders();
+      setOrders(myActiveOrders);
     } catch (err) {
       setError("Failed to fetch deliveries.");
       console.error(err);

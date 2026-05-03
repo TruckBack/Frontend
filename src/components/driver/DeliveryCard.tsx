@@ -229,19 +229,17 @@ const DeliveryCard = ({
         }}
       >
         {renderActionButtons()}
-        <Tooltip title="View Details">
-          <IconButton
-            size="small"
-            onClick={() => onViewDetails?.(delivery.id)}
-            sx={{
-              flex: "0 0 auto",
-              border: 1,
-              borderColor: "divider",
-            }}
-          >
-            <VisibilityOutlined fontSize="small" />
-          </IconButton>
-        </Tooltip>
+        
+
+        <Button
+          variant="contained"
+          color="secondary"
+          size="small"
+          onClick={() => onViewDetails?.(delivery.id)}
+        >
+          Details
+        </Button>
+
         <Button
           variant="contained"
           color="secondary"

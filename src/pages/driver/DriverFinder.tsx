@@ -14,6 +14,7 @@ import DeliveryCard, {
 import { orderService } from "../../services/order";
 import { driverService } from "../../services/driver";
 import type { Order, DriverStatus } from "../../services/types";
+import OrderDetailDialog from "../../components/shared/OrderDetailDialog";
 
 const mapOrderToDelivery = (order: Order): Delivery => ({
   id: String(order.id),
@@ -34,6 +35,7 @@ const DriverFinder = () => {
   const [error, setError] = useState<string | null>(null);
   const [driverStatus, setDriverStatus] = useState<DriverStatus | null>(null);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
+  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [snack, setSnack] = useState<{
     open: boolean;
     severity: "success" | "error" | "warning";
@@ -87,7 +89,7 @@ const DriverFinder = () => {
       const detail =
         err && typeof err === "object" && "response" in err
           ? (err as { response?: { data?: { detail?: string } } }).response
-              ?.data?.detail
+            ?.data?.detail
           : undefined;
       showSnack(
         "error",
@@ -101,14 +103,17 @@ const DriverFinder = () => {
     }
   };
 
+  const handleViewDetails = (id: string) => {
+    setSelectedOrderId(Number(id));
+  };
+
   return (
     <Box
       sx={{
         width: "100%",
         maxWidth: 680,
         mx: "auto",
-        px: { xs: 2, sm: 3 },
-        py: { xs: 2, sm: 3 },
+        pb: { xs: 10, md: 0 },
         boxSizing: "border-box",
         height: { xs: "calc(100dvh - 56px)", md: "100dvh" },
         display: "flex",
@@ -144,6 +149,7 @@ const DriverFinder = () => {
               key={order.id}
               delivery={mapOrderToDelivery(order)}
               onAccept={handleAccept}
+              onViewDetails={handleViewDetails}
               accepting={acceptingId === String(order.id)}
             />
           ))}
@@ -164,8 +170,19 @@ const DriverFinder = () => {
           {snack.message}
         </Alert>
       </Snackbar>
+      <OrderDetailDialog
+        key={selectedOrderId ?? "closed"}
+        orderId={selectedOrderId}
+        open={selectedOrderId !== null}
+        onClose={() => setSelectedOrderId(null)}
+        role="driver"
+        onAccept={(id) =>
+          handleAccept(String(id)).then(() => setSelectedOrderId(null))
+        }
+      />
     </Box>
   );
 };
 
 export default DriverFinder;
+
