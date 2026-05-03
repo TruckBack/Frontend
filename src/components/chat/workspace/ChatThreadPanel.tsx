@@ -231,8 +231,13 @@ export default function ChatThreadPanel({
                       alignItems="center"
                       sx={{ mt: 0.25, mr: 0.5 }}
                     >
-                      <DoneAllOutlined sx={{ fontSize: 13, color: "#2563EB" }} />
-                      <Typography variant="caption" sx={{ color: "#2563EB", fontSize: "0.68rem" }}>
+                      <DoneAllOutlined
+                        sx={{ fontSize: 13, color: "#2563EB" }}
+                      />
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "#2563EB", fontSize: "0.68rem" }}
+                      >
                         Seen
                       </Typography>
                     </Stack>
@@ -290,14 +295,21 @@ export default function ChatThreadPanel({
                 onClick={onSend}
                 disabled={!draft.trim() || sending}
                 sx={{
-                  bgcolor: draft.trim() && !sending ? "primary.main" : "action.disabledBackground",
-                  color: draft.trim() && !sending ? "common.white" : "text.disabled",
+                  bgcolor:
+                    draft.trim() && !sending
+                      ? "primary.main"
+                      : "action.disabledBackground",
+                  color:
+                    draft.trim() && !sending ? "common.white" : "text.disabled",
                   width: 36,
                   height: 36,
                   borderRadius: 2,
                   transition: "background-color 0.2s",
                   "&:hover": {
-                    bgcolor: draft.trim() && !sending ? "primary.dark" : "action.disabledBackground",
+                    bgcolor:
+                      draft.trim() && !sending
+                        ? "primary.dark"
+                        : "action.disabledBackground",
                   },
                   "&.Mui-disabled": {
                     color: "text.disabled",

@@ -68,10 +68,14 @@ export default function ChatInboxPanel({
           <Alert severity="error">{error}</Alert>
         </Box>
       ) : conversations.length > 0 ? (
-        <List disablePadding sx={{ flex: 1, minHeight: 0, overflowY: "auto", px: 1, py: 0.5 }}>
+        <List
+          disablePadding
+          sx={{ flex: 1, minHeight: 0, overflowY: "auto", px: 1, py: 0.5 }}
+        >
           {conversations.map((conversation) => {
             const unread = conversation.unread_count;
-            const lastBody = conversation.last_message?.body ?? "No messages yet";
+            const lastBody =
+              conversation.last_message?.body ?? "No messages yet";
             const lastTime = conversation.updated_at;
             const isSelected = conversation.order_id === selectedOrderId;
 
@@ -86,11 +90,13 @@ export default function ChatInboxPanel({
                   px: 1.5,
                   mb: 0.25,
                   borderRadius: 2,
-                  borderLeft: isSelected ? "3px solid" : "3px solid transparent",
+                  borderLeft: isSelected
+                    ? "3px solid"
+                    : "3px solid transparent",
                   borderLeftColor: isSelected ? "primary.main" : "transparent",
                   bgcolor: isSelected ? "action.selected" : "transparent",
                   transition: "background-color 0.15s, border-color 0.15s",
-                  '&:hover': { bgcolor: 'action.hover' },
+                  "&:hover": { bgcolor: "action.hover" },
                 }}
               >
                 <Avatar
@@ -108,15 +114,28 @@ export default function ChatInboxPanel({
                   {getInitials(conversation.order_id)}
                 </Avatar>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.3 }}>
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    sx={{ mb: 0.3 }}
+                  >
                     <Typography variant="subtitle2" fontWeight={700} noWrap>
                       Order #{conversation.order_id}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0, ml: 1 }}>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ flexShrink: 0, ml: 1 }}
+                    >
                       {formatChatTime(lastTime)}
                     </Typography>
                   </Stack>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                  >
                     <Typography
                       variant="body2"
                       color="text.secondary"
