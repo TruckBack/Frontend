@@ -4,13 +4,11 @@ import {
   Card,
   Chip,
   CircularProgress,
-  IconButton,
   Stack,
-  Tooltip,
   Typography,
   useTheme,
 } from "@mui/material";
-import { FavoriteBorder, VisibilityOutlined } from "@mui/icons-material";
+import { FavoriteBorder } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import {
   getDriverDeliveryStatusColor,
@@ -229,7 +227,7 @@ const DeliveryCard = ({
         }}
       >
         {renderActionButtons()}
-        
+
 
         <Button
           variant="contained"
