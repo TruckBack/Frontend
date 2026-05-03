@@ -1,5 +1,5 @@
 import apiService from './api';
-import type { Order, OrderCreate, OrderUpdate, OrderCancel, Page } from './types';
+import type { Order, OrderCreate, OrderUpdate, OrderCancel, Page, Rating, RatingCreate, RatingResponseCreate } from './types';
 
 export const orderService = {
     createOrder(data: OrderCreate): Promise<Order> {
@@ -48,5 +48,24 @@ export const orderService = {
 
     deleteOrder(orderId: number): Promise<void> {
         return apiService.delete(`/orders/${orderId}`).then(() => undefined);
+    },
+
+    submitRating(orderId: number, payload: RatingCreate): Promise<Rating> {
+        return apiService.post(`/orders/${orderId}/rating`, payload).then(res => res.data);
+    },
+
+    getOrderRating(orderId: number): Promise<Rating | null> {
+        return apiService.get(`/orders/${orderId}/rating`).then(res => res.data).catch((err) => {
+            if (err?.response?.status === 404) return null;
+            throw err;
+        });
+    },
+
+    submitDriverResponse(orderId: number, payload: RatingResponseCreate): Promise<Rating> {
+        return apiService.post(`/orders/${orderId}/rating/response`, payload).then(res => res.data);
+    },
+
+    deleteDriverResponse(orderId: number): Promise<Rating> {
+        return apiService.delete(`/orders/${orderId}/rating/response`).then(res => res.data);
     },
 };

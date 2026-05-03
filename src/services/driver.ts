@@ -4,13 +4,16 @@ import type {
     DriverProfileUpdate,
     DriverStatusUpdate,
     DriverLocationUpdate,
+    DriverRatingsPage,
 } from './types';
 
 export const driverService = {
-    // There is no GET /drivers/me/profile endpoint in the spec.
-    // PUT with an empty body is a safe no-op since all update fields are optional.
+    // Try GET first (backend likely has this even if the openapi.json is outdated).
+    // Fall back to PUT with an empty body as a last resort.
     getMyProfile(): Promise<DriverProfile> {
-        return apiService.put('/drivers/me/profile', {}).then(res => res.data);
+        return apiService.get('/drivers/me/profile')
+            .then(res => res.data)
+            .catch(() => apiService.put('/drivers/me/profile', {}).then(res => res.data));
     },
 
     updateProfile(data: DriverProfileUpdate): Promise<DriverProfile> {
@@ -23,5 +26,9 @@ export const driverService = {
 
     updateLocation(data: DriverLocationUpdate): Promise<DriverProfile> {
         return apiService.post('/drivers/me/location', data).then(res => res.data);
+    },
+
+    listDriverRatings(driverId: number, limit = 20, offset = 0): Promise<DriverRatingsPage> {
+        return apiService.get(`/drivers/${driverId}/ratings`, { params: { limit, offset } }).then(res => res.data);
     },
 };

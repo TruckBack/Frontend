@@ -6,7 +6,9 @@ import {
   Button,
   Card,
   CircularProgress,
+  Divider,
   IconButton,
+  Rating as MuiRating,
   Stack,
   TextField,
   Typography,
@@ -22,7 +24,7 @@ import { uploadService, resolveImageUrl } from "../../services/upload";
 import { driverService } from "../../services/driver";
 import { orderService } from "../../services/order";
 import authService from "../../services/auth";
-import type { DriverProfile as DriverProfileType } from "../../services/types";
+import type { DriverProfile as DriverProfileType, Rating } from "../../services/types";
 
 const DriverProfile = () => {
   const { user, logout, updateUser } = useAuth();
@@ -47,6 +49,13 @@ const DriverProfile = () => {
   );
   const [completedCount, setCompletedCount] = useState<number | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
+
+  // Reviews
+  const [reviews, setReviews] = useState<Rating[]>([]);
+  const [reviewsTotal, setReviewsTotal] = useState(0);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsOffset, setReviewsOffset] = useState(0);
+  const REVIEWS_LIMIT = 5;
 
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingVehicle, setSavingVehicle] = useState(false);
@@ -77,6 +86,18 @@ const DriverProfile = () => {
             : "",
         );
         setCompletedCount(history.total);
+        // Load first page of reviews once we have the driver profile id
+        if (profile.id) {
+          setReviewsLoading(true);
+          driverService.listDriverRatings(profile.id, REVIEWS_LIMIT, 0)
+            .then(page => {
+              setReviews(page.items);
+              setReviewsTotal(page.total);
+              setReviewsOffset(REVIEWS_LIMIT);
+            })
+            .catch(() => { /* silently degrade */ })
+            .finally(() => setReviewsLoading(false));
+        }
       } catch {
         // Stats unavailable — silently degrade
       } finally {
@@ -162,6 +183,20 @@ const DriverProfile = () => {
       );
     } finally {
       setSavingPassword(false);
+    }
+  };
+
+  const handleLoadMoreReviews = async () => {
+    if (!driverProfile) return;
+    setReviewsLoading(true);
+    try {
+      const page = await driverService.listDriverRatings(driverProfile.id, REVIEWS_LIMIT, reviewsOffset);
+      setReviews(prev => [...prev, ...page.items]);
+      setReviewsOffset(prev => prev + REVIEWS_LIMIT);
+    } catch {
+      // silently degrade
+    } finally {
+      setReviewsLoading(false);
     }
   };
 
@@ -458,6 +493,72 @@ const DriverProfile = () => {
             >
               Change Password
             </Button>
+          </Stack>
+        </Card>
+
+        {/* My Reviews */}
+        <Card variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+          <Stack spacing={2}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Typography variant="subtitle2" fontWeight={600}>
+                My Reviews
+              </Typography>
+              {reviewsTotal > 0 && (
+                <Typography variant="caption" color="text.secondary">
+                  {reviewsTotal} review{reviewsTotal !== 1 ? 's' : ''}
+                </Typography>
+              )}
+            </Stack>
+
+            {reviewsLoading && reviews.length === 0 ? (
+              <CircularProgress size={20} sx={{ mx: "auto", my: 1 }} />
+            ) : reviews.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                No reviews yet.
+              </Typography>
+            ) : (
+              <Stack spacing={2} divider={<Divider />}>
+                {reviews.map((r) => (
+                  <Stack key={r.id} spacing={0.75}>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <MuiRating value={r.score} readOnly size="small" />
+                      <Typography variant="caption" color="text.secondary">
+                        {new Date(r.created_at).toLocaleDateString(undefined, {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </Typography>
+                    </Stack>
+                    {r.comment && (
+                      <Typography variant="body2">{r.comment}</Typography>
+                    )}
+                    {r.driver_response && (
+                      <Box sx={{ pl: 1.5, borderLeft: 3, borderColor: "primary.main" }}>
+                        <Typography variant="caption" fontWeight={600} color="primary.main">
+                          Your response
+                        </Typography>
+                        <Typography variant="body2" sx={{ mt: 0.25 }}>
+                          {r.driver_response}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Stack>
+                ))}
+              </Stack>
+            )}
+
+            {reviews.length < reviewsTotal && (
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={handleLoadMoreReviews}
+                disabled={reviewsLoading}
+                startIcon={reviewsLoading ? <CircularProgress size={14} color="inherit" /> : undefined}
+              >
+                Load more
+              </Button>
+            )}
           </Stack>
         </Card>
 

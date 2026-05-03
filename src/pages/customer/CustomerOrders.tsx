@@ -17,6 +17,7 @@ import PageHeader from '../../components/shared/PageHeader';
 import OrderStatsRow from '../../components/customer/orders/OrderStatsRow';
 import OrderFilters from '../../components/customer/orders/OrderFilters';
 import OrderDetailDialog from '../../components/shared/OrderDetailDialog';
+import RatingModal from '../../components/shared/RatingModal';
 import CustomerOrderCard, { type CustomerOrder } from '../../components/customer/orders/CustomerOrderCard';
 import { useOrderFiltering } from '../../hooks/useOrderFiltering';
 import { orderService } from '../../services/order';
@@ -39,7 +40,7 @@ const mapOrderStatus = (status: Order['status']): CustomerOrder['status'] => {
     }
 }
 
-const mapOrderToCustomerOrder = (order: Order): CustomerOrder => ({
+const mapOrderToCustomerOrder = (order: Order, ratedIds: Set<number>): CustomerOrder => ({
     id: String(order.id),
     orderNumber: `Order #${order.id}`,
     status: mapOrderStatus(order.status),
@@ -49,8 +50,9 @@ const mapOrderToCustomerOrder = (order: Order): CustomerOrder => ({
     weight: `${order.cargo_weight_kg || 0} kg`,
     pickup: order.pickup_address,
     dropoff: order.dropoff_address,
-    driverName: 'Not assigned', // This would need more logic, maybe fetching user by driver_id
-    driverPhone: '', // Same as above
+    driverName: 'Not assigned',
+    driverPhone: '',
+    rated: ratedIds.has(order.id),
 });
 
 export default function CustomerOrders() {
@@ -79,6 +81,11 @@ export default function CustomerOrders() {
     // Detail dialog state
     const [detailOrderId, setDetailOrderId] = useState<number | null>(null);
 
+    // Rating modal state
+    const [ratingOrderId, setRatingOrderId] = useState<number | null>(null);
+    /** Set of order ids that have already been rated (optimistic cache) */
+    const [ratedOrderIds, setRatedOrderIds] = useState<Set<number>>(new Set());
+
     useEffect(() => {
         const fetchOrders = async () => {
             try {
@@ -106,7 +113,7 @@ export default function CustomerOrders() {
         fetchOrders();
     }, []);
 
-    const customerOrders = orders.map(mapOrderToCustomerOrder);
+    const customerOrders = orders.map(o => mapOrderToCustomerOrder(o, ratedOrderIds));
 
     const {
         selectedFilter,
@@ -127,6 +134,10 @@ export default function CustomerOrders() {
 
     const handleViewDetails = (order: CustomerOrder) => {
         setDetailOrderId(Number(order.id));
+    };
+
+    const handleRate = (order: CustomerOrder) => {
+        setRatingOrderId(Number(order.id));
     };
 
     const handleOpenEdit = (customerOrder: CustomerOrder) => {
@@ -224,6 +235,7 @@ export default function CustomerOrders() {
                             onViewDetails={handleViewDetails}
                             onEdit={handleOpenEdit}
                             onDelete={handleOpenDelete}
+                            onRate={handleRate}
                         />
                     ))}
                 </Stack>
@@ -317,6 +329,18 @@ export default function CustomerOrders() {
                 if (customerOrder) handleOpenChat(customerOrder);
             }}
         />
+
+        {ratingOrderId !== null && (
+            <RatingModal
+                key={ratingOrderId}
+                orderId={ratingOrderId}
+                open={ratingOrderId !== null}
+                onClose={() => setRatingOrderId(null)}
+                onRated={() => {
+                    setRatedOrderIds(prev => new Set([...prev, ratingOrderId]));
+                }}
+            />
+        )}
         </>
     );
 }

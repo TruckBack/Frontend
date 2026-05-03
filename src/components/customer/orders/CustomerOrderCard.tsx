@@ -1,4 +1,4 @@
-import { DeleteOutline, EditOutlined, Place, VisibilityOutlined } from '@mui/icons-material';
+import { DeleteOutline, EditOutlined, Place, StarOutline, VisibilityOutlined } from '@mui/icons-material';
 import { Button, Card, Chip, IconButton, Stack, Tooltip, Typography, useTheme } from '@mui/material';
 import { getCustomerOrderStatusColor, getCustomerOrderStatusLabel, type CustomerOrderStatus } from '../../../utils/statusUtils';
 
@@ -14,6 +14,8 @@ export interface CustomerOrder {
     dropoff: string;
     driverName: string;
     driverPhone: string;
+    /** true when a rating was already submitted for this order */
+    rated?: boolean;
 }
 
 interface CustomerOrderCardProps {
@@ -22,11 +24,13 @@ interface CustomerOrderCardProps {
     onViewDetails?: (order: CustomerOrder) => void;
     onEdit?: (order: CustomerOrder) => void;
     onDelete?: (order: CustomerOrder) => void;
+    onRate?: (order: CustomerOrder) => void;
 }
 
-export default function CustomerOrderCard({ order, onOpenChat, onViewDetails, onEdit, onDelete }: CustomerOrderCardProps) {
+export default function CustomerOrderCard({ order, onOpenChat, onViewDetails, onEdit, onDelete, onRate }: CustomerOrderCardProps) {
     const theme = useTheme();
     const canModify = order.status === 'pending';
+    const canRate = order.status === 'delivered';
 
     return (
         <Card
@@ -150,6 +154,20 @@ export default function CustomerOrderCard({ order, onOpenChat, onViewDetails, on
                     >
                         Chat
                     </Button>
+                    {canRate && (
+                        <Tooltip title={order.rated ? 'View your rating' : 'Rate your driver'}>
+                            <Button
+                                variant={order.rated ? 'outlined' : 'contained'}
+                                size="small"
+                                color="warning"
+                                startIcon={<StarOutline fontSize="small" />}
+                                onClick={() => onRate?.(order)}
+                                sx={{ flex: 1.2 }}
+                            >
+                                {order.rated ? 'Rated' : 'Rate'}
+                            </Button>
+                        </Tooltip>
+                    )}
                     <Tooltip title="View Details">
                         <IconButton
                             size="small"

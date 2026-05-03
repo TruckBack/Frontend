@@ -1,8 +1,13 @@
-import { FavoriteBorder } from '@mui/icons-material';
-import { Box, Card, Stack, Typography, useTheme } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { ExpandMore, FavoriteBorder } from '@mui/icons-material';
+import { Box, Card, Collapse, Divider, IconButton, Stack, Typography, useTheme } from '@mui/material';
+import { orderService } from '../../../services/order';
+import type { Rating } from '../../../services/types';
+import DriverRatingSection from '../DriverRatingSection';
 
 export interface PastDelivery {
     id: string;
+    orderId: number;
     customerName: string;
     price: number;
     category: string;
@@ -18,6 +23,16 @@ interface PastDeliveryCardProps {
 
 export default function PastDeliveryCard({ delivery }: PastDeliveryCardProps) {
     const theme = useTheme();
+    const [expanded, setExpanded] = useState(false);
+    const [rating, setRating] = useState<Rating | null | undefined>(undefined);
+
+    // Fetch rating when user expands the card
+    useEffect(() => {
+        if (!expanded || rating !== undefined) return;
+        orderService.getOrderRating(delivery.orderId)
+            .then(r => setRating(r))
+            .catch(() => setRating(null));
+    }, [expanded, delivery.orderId, rating]);
 
     return (
         <Card
@@ -77,6 +92,38 @@ export default function PastDeliveryCard({ delivery }: PastDeliveryCardProps) {
                     ))}
                 </Stack>
             ) : null}
+
+            {/* Rating section toggle */}
+            <Stack direction="row" alignItems="center" sx={{ mt: 1 }}>
+                <Typography
+                    variant="caption"
+                    color="primary.main"
+                    sx={{ cursor: 'pointer', userSelect: 'none' }}
+                    onClick={() => setExpanded(e => !e)}
+                >
+                    {expanded ? 'Hide review' : 'Customer review'}
+                </Typography>
+                <IconButton
+                    size="small"
+                    onClick={() => setExpanded(e => !e)}
+                    sx={{
+                        transform: expanded ? 'rotate(180deg)' : 'none',
+                        transition: 'transform 0.2s',
+                        ml: 0.5,
+                    }}
+                >
+                    <ExpandMore fontSize="small" />
+                </IconButton>
+            </Stack>
+
+            <Collapse in={expanded} unmountOnExit>
+                <Divider sx={{ my: 1.5 }} />
+                {rating === undefined ? (
+                    <Typography variant="caption" color="text.secondary">Loading…</Typography>
+                ) : (
+                    <DriverRatingSection orderId={delivery.orderId} initialRating={rating} />
+                )}
+            </Collapse>
         </Card>
     );
 }

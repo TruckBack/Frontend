@@ -185,3 +185,31 @@ export interface ApiError {
     message: string;
     code: string;
 }
+
+export interface Rating {
+    id: number;
+    order_id: number;
+    driver_id: number;
+    customer_id: number;
+    score: number;
+    comment: string | null;
+    created_at: string;
+    driver_response: string | null;
+    driver_responded_at: string | null;
+}
+
+export interface RatingCreate {
+    score: number;
+    comment?: string | null;
+}
+
+export interface RatingResponseCreate {
+    response: string;
+}
+
+export interface DriverRatingsPage {
+    items: Rating[];
+    total: number;
+    limit: number;
+    offset: number;
+}

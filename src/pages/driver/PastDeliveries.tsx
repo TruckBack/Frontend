@@ -12,6 +12,7 @@ import type { Order } from '../../services/types';
 
 const mapOrderToPastDelivery = (order: Order): PastDelivery => ({
     id: String(order.id),
+    orderId: order.id,
     customerName: 'Unknown Customer', // Requires fetching customer user details
     price: order.price_cents / 100,
     category: order.cargo_description || 'General',
