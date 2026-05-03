@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { Close, Place, LocalShipping, AttachMoney, Note, ImageOutlined } from '@mui/icons-material';
 import { orderService } from '../../services/order';
+import { resolveImageUrl } from '../../services/upload';
 import type { Order } from '../../services/types';
 
 const statusColorMap: Record<Order['status'], 'default' | 'info' | 'warning' | 'success' | 'error' | 'primary'> = {
@@ -173,7 +174,7 @@ export default function OrderDetailDialog({
                                 }}
                             >
                                 <img
-                                    src={order.cargo_image_url}
+                                    src={resolveImageUrl(order.cargo_image_url)}
                                     alt="Cargo"
                                     style={{
                                         width: '100%',
