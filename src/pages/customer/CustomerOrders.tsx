@@ -87,7 +87,15 @@ export default function CustomerOrders() {
                     orderService.listOrderHistory(),
                     orderService.listMyActiveOrders(),
                 ]);
-                setOrders([...active, ...history.items]);
+                // Active orders may also appear in history — deduplicate by id, keeping active-first
+                const merged = [...active, ...history.items];
+                const seen = new Set<number>();
+                const unique = merged.filter(o => {
+                    if (seen.has(o.id)) return false;
+                    seen.add(o.id);
+                    return true;
+                });
+                setOrders(unique);
             } catch (err) {
                 setError('Failed to fetch orders.');
                 console.error(err);
