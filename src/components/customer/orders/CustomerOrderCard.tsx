@@ -1,5 +1,5 @@
-import { DeleteOutline, EditOutlined, Place, StarOutline, VisibilityOutlined } from '@mui/icons-material';
-import { Button, Card, Chip, IconButton, Stack, Tooltip, Typography, useTheme } from '@mui/material';
+import { DeleteOutline, EditOutlined, FmdGoodOutlined, PlaceOutlined, StarOutline, VisibilityOutlined } from '@mui/icons-material';
+import { Box, Button, Card, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { getCustomerOrderStatusColor, getCustomerOrderStatusLabel, type CustomerOrderStatus } from '../../../utils/statusUtils';
 
 export interface CustomerOrder {
@@ -28,7 +28,7 @@ interface CustomerOrderCardProps {
 }
 
 export default function CustomerOrderCard({ order, onOpenChat, onViewDetails, onEdit, onDelete, onRate }: CustomerOrderCardProps) {
-    const theme = useTheme();
+    const statusColor = getCustomerOrderStatusColor(order.status);
     const canModify = order.status === 'pending';
     const canRate = order.status === 'delivered';
 
@@ -36,153 +36,136 @@ export default function CustomerOrderCard({ order, onOpenChat, onViewDetails, on
         <Card
             variant="outlined"
             sx={{
-                p: 1.75,
-                borderRadius: 2,
-                borderLeft: `3px solid ${getCustomerOrderStatusColor(order.status, theme.palette)}`,
+                p: 0,
+                overflow: 'hidden',
+                borderLeft: `3px solid ${statusColor}`,
             }}
         >
-            <Stack spacing={1.5}>
-                <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                    <Stack direction="row" spacing={1} alignItems="center">
-                        <Chip
-                            label={getCustomerOrderStatusLabel(order.status)}
-                            size="small"
-                            variant="outlined"
-                            sx={{
-                                height: 22,
-                                borderColor: getCustomerOrderStatusColor(order.status, theme.palette),
-                                color: getCustomerOrderStatusColor(order.status, theme.palette),
-                                '& .MuiChip-label': {
-                                    px: 1,
-                                    fontSize: '0.7rem',
-                                },
-                            }}
-                        />
-                        <Typography variant="body2" fontWeight={500} color="text.secondary">
-                            {order.orderNumber}
-                        </Typography>
-                    </Stack>
-                    <Stack direction="row" alignItems="center" spacing={0.5}>
-                        {canModify && (
-                            <>
-                                <Tooltip title="Edit order">
-                                    <IconButton size="small" onClick={() => onEdit?.(order)}>
-                                        <EditOutlined fontSize="small" />
-                                    </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Delete order">
-                                    <IconButton size="small" color="error" onClick={() => onDelete?.(order)}>
-                                        <DeleteOutline fontSize="small" />
-                                    </IconButton>
-                                </Tooltip>
-                            </>
-                        )}
-                        <Stack alignItems="flex-end" spacing={0.25}>
-                            <Typography variant="h6" fontWeight={700} color="success.main" lineHeight={1}>
-                                ${order.price.toFixed(2)}
-                            </Typography>
+            <Box sx={{ px: 2, py: 1.75 }}>
+                <Stack spacing={1.5}>
+                    {/* Header row */}
+                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                        <Stack spacing={0.5}>
+                            <Stack direction="row" spacing={1} alignItems="center">
+                                <Chip
+                                    label={getCustomerOrderStatusLabel(order.status)}
+                                    size="small"
+                                    sx={{
+                                        height: 20,
+                                        bgcolor: statusColor + '18',
+                                        color: statusColor,
+                                        border: `1px solid ${statusColor}40`,
+                                        '& .MuiChip-label': { px: 1, fontSize: '0.68rem' },
+                                    }}
+                                />
+                                <Typography variant="caption" color="text.secondary" fontWeight={500}>
+                                    {order.orderNumber}
+                                </Typography>
+                            </Stack>
                             <Typography variant="caption" color="text.secondary">
-                                {order.date}
+                                {order.category} · {order.weight} · {order.date}
                             </Typography>
                         </Stack>
-                    </Stack>
-                </Stack>
-
-                <Typography variant="body2" color="text.secondary">
-                    {order.category} • {order.weight}
-                </Typography>
-
-                <Stack spacing={1}>
-                    <Stack direction="row" spacing={1} alignItems="flex-start">
-                        <Place sx={{ fontSize: 18, color: theme.palette.success.main, mt: 0.1 }} />
-                        <Stack spacing={0.25}>
-                            <Typography variant="caption" color="text.secondary">Pickup</Typography>
-                            <Typography variant="body2" fontWeight={500}>{order.pickup}</Typography>
+                        <Stack direction="row" alignItems="center" spacing={0.25}>
+                            {canModify && (
+                                <>
+                                    <Tooltip title="Edit order">
+                                        <IconButton size="small" onClick={() => onEdit?.(order)}>
+                                            <EditOutlined fontSize="small" />
+                                        </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Delete order">
+                                        <IconButton size="small" color="error" onClick={() => onDelete?.(order)}>
+                                            <DeleteOutline fontSize="small" />
+                                        </IconButton>
+                                    </Tooltip>
+                                </>
+                            )}
+                            <Stack alignItems="flex-end" spacing={0.1} sx={{ ml: 0.5 }}>
+                                <Typography variant="subtitle1" fontWeight={700} color="success.main" lineHeight={1.1}>
+                                    ${order.price.toFixed(2)}
+                                </Typography>
+                            </Stack>
                         </Stack>
                     </Stack>
-                    <Stack direction="row" spacing={1} alignItems="flex-start">
-                        <Place sx={{ fontSize: 18, color: theme.palette.primary.main, mt: 0.1 }} />
-                        <Stack spacing={0.25}>
-                            <Typography variant="caption" color="text.secondary">Drop-off</Typography>
-                            <Typography variant="body2" fontWeight={500}>{order.dropoff}</Typography>
+
+                    {/* Route */}
+                    <Stack spacing={0.75}>
+                        <Stack direction="row" spacing={1} alignItems="flex-start">
+                            <FmdGoodOutlined sx={{ fontSize: 16, color: '#10B981', mt: 0.2, flexShrink: 0 }} />
+                            <Stack spacing={0}>
+                                <Typography variant="caption" color="text.secondary">Pickup</Typography>
+                                <Typography variant="body2" fontWeight={500} sx={{ lineHeight: 1.3 }}>{order.pickup}</Typography>
+                            </Stack>
+                        </Stack>
+                        <Stack direction="row" spacing={1} alignItems="flex-start">
+                            <PlaceOutlined sx={{ fontSize: 16, color: '#EF4444', mt: 0.2, flexShrink: 0 }} />
+                            <Stack spacing={0}>
+                                <Typography variant="caption" color="text.secondary">Drop-off</Typography>
+                                <Typography variant="body2" fontWeight={500} sx={{ lineHeight: 1.3 }}>{order.dropoff}</Typography>
+                            </Stack>
                         </Stack>
                     </Stack>
-                </Stack>
 
-                <Stack
-                    direction="row"
-                    justifyContent="space-between"
-                    alignItems="flex-end"
-                    sx={{
-                        p: 1,
-                        borderRadius: 1.5,
-                        backgroundColor: 'action.hover',
-                    }}
-                >
-                    <Stack spacing={0.2}>
-                        <Typography variant="caption" color="text.secondary">Driver</Typography>
-                        <Typography variant="body2" fontWeight={500}>{order.driverName}</Typography>
+                    {/* Driver strip */}
+                    <Stack
+                        direction="row"
+                        justifyContent="space-between"
+                        alignItems="center"
+                        sx={{ px: 1.25, py: 1, borderRadius: 1.5, bgcolor: 'action.hover' }}
+                    >
+                        <Stack spacing={0}>
+                            <Typography variant="caption" color="text.secondary">Driver</Typography>
+                            <Typography variant="body2" fontWeight={600}>{order.driverName}</Typography>
+                        </Stack>
+                        <Typography variant="caption" color="text.secondary" fontWeight={500}>{order.driverPhone}</Typography>
                     </Stack>
-                    <Typography variant="body2" fontWeight={500}>{order.driverPhone}</Typography>
-                </Stack>
 
-                <Stack
-                    direction="row"
-                    spacing={1}
-                    sx={{
-                        '& button': {
-                            borderRadius: 1.5,
-                            textTransform: 'none',
-                        },
-                    }}
-                >
-                    <Button
-                        variant="contained"
-                        size="small"
-                        sx={{ flex: 1.8 }}
-                        disabled={order.driverName === 'Not assigned' || order.status === 'delivered'}
-                    >
-                        Track Delivery
-                    </Button>
-                    <Button
-                        variant="contained"
-                        size="small"
-                        color="secondary"
-                        sx={{ flex: 1 }}
-                        disabled={order.driverName === 'Not assigned' || order.status === 'delivered'}
-                        onClick={() => onOpenChat(order)}
-                    >
-                        Chat
-                    </Button>
-                    {canRate && (
-                        <Tooltip title={order.rated ? 'View your rating' : 'Rate your driver'}>
-                            <Button
-                                variant={order.rated ? 'outlined' : 'contained'}
-                                size="small"
-                                color="warning"
-                                startIcon={<StarOutline fontSize="small" />}
-                                onClick={() => onRate?.(order)}
-                                sx={{ flex: 1.2 }}
-                            >
-                                {order.rated ? 'Rated' : 'Rate'}
-                            </Button>
-                        </Tooltip>
-                    )}
-                    <Tooltip title="View Details">
-                        <IconButton
+                    {/* Actions */}
+                    <Stack direction="row" spacing={1}>
+                        <Button
+                            variant="contained"
                             size="small"
-                            onClick={() => onViewDetails?.(order)}
-                            sx={{
-                                flex: '0 0 auto',
-                                border: 1,
-                                borderColor: 'divider',
-                            }}
+                            sx={{ flex: 1.8 }}
+                            disabled={order.driverName === 'Not assigned' || order.status === 'delivered'}
                         >
-                            <VisibilityOutlined fontSize="small" />
-                        </IconButton>
-                    </Tooltip>
+                            Track Delivery
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            sx={{ flex: 1 }}
+                            disabled={order.driverName === 'Not assigned' || order.status === 'delivered'}
+                            onClick={() => onOpenChat(order)}
+                        >
+                            Chat
+                        </Button>
+                        {canRate && (
+                            <Tooltip title={order.rated ? 'View your rating' : 'Rate your driver'}>
+                                <Button
+                                    variant={order.rated ? 'outlined' : 'contained'}
+                                    size="small"
+                                    color="warning"
+                                    startIcon={<StarOutline fontSize="small" />}
+                                    onClick={() => onRate?.(order)}
+                                    sx={{ flex: 1.2 }}
+                                >
+                                    {order.rated ? 'Rated' : 'Rate'}
+                                </Button>
+                            </Tooltip>
+                        )}
+                        <Tooltip title="View Details">
+                            <IconButton
+                                size="small"
+                                onClick={() => onViewDetails?.(order)}
+                                sx={{ border: 1, borderColor: 'divider' }}
+                            >
+                                <VisibilityOutlined fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                    </Stack>
                 </Stack>
-            </Stack>
+            </Box>
         </Card>
     );
 }

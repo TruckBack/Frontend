@@ -6,16 +6,15 @@ import {
   Alert,
   Avatar,
   Box,
-  Button,
   Card,
   CircularProgress,
   Divider,
   IconButton,
+  InputAdornment,
+  OutlinedInput,
   Paper,
   Stack,
-  TextField,
   Typography,
-  useTheme,
 } from "@mui/material";
 import type { ChatMessage } from "../../../services/chat";
 import { formatChatTime } from "./chatFormatters";
@@ -53,8 +52,6 @@ export default function ChatThreadPanel({
   onSend,
   onDismissSendError,
 }: ChatThreadPanelProps) {
-  const theme = useTheme();
-
   // Index of the last outgoing message that has been read by the other party
   const lastReadOutgoingIndex = (() => {
     for (let i = messages.length - 1; i >= 0; i--) {
@@ -118,18 +115,29 @@ export default function ChatThreadPanel({
       }}
     >
       {/* Header */}
-      <Box sx={{ p: 2 }}>
+      <Box sx={{ px: 2.5, py: 1.75 }}>
         <Stack direction="row" alignItems="center" spacing={1.5}>
           {!isDesktop ? (
-            <IconButton onClick={onBackToInbox} edge="start">
+            <IconButton onClick={onBackToInbox} edge="start" size="small">
               <ArrowBackOutlined />
             </IconButton>
           ) : null}
+          <Avatar
+            sx={{
+              width: 36,
+              height: 36,
+              bgcolor: "primary.main",
+              fontSize: "0.78rem",
+              fontWeight: 700,
+            }}
+          >
+            {recipientName.charAt(0).toUpperCase()}
+          </Avatar>
           <Box sx={{ minWidth: 0 }}>
-            <Typography variant="h6" fontWeight={700} noWrap>
+            <Typography variant="subtitle1" fontWeight={700} noWrap>
               {recipientName}
             </Typography>
-            <Typography variant="body2" color="text.secondary" noWrap>
+            <Typography variant="caption" color="text.secondary" noWrap>
               {conversationTitle}
             </Typography>
           </Box>
@@ -143,8 +151,9 @@ export default function ChatThreadPanel({
           flex: 1,
           minHeight: 0,
           overflowY: "auto",
-          p: 2,
-          bgcolor: theme.palette.action.hover,
+          px: 2,
+          py: 2,
+          bgcolor: "action.hover",
         }}
       >
         {loading ? (
@@ -156,7 +165,7 @@ export default function ChatThreadPanel({
             {error}
           </Alert>
         ) : (
-          <Stack spacing={1.5}>
+          <Stack spacing={1}>
             {messages.map((message, index) => {
               const isOutgoing = message.sender_id === userId;
               const showSeen = isOutgoing && index === lastReadOutgoingIndex;
@@ -172,38 +181,43 @@ export default function ChatThreadPanel({
                 >
                   <Card
                     sx={{
-                      maxWidth: "82%",
+                      maxWidth: "78%",
                       px: 1.5,
-                      py: 1.25,
-                      borderRadius: 2.5,
-                      bgcolor: isOutgoing
-                        ? theme.palette.primary.main
-                        : theme.palette.background.paper,
+                      py: 1,
+                      borderRadius: isOutgoing
+                        ? "14px 14px 4px 14px"
+                        : "14px 14px 14px 4px",
+                      bgcolor: isOutgoing ? "#2563EB" : "background.paper",
                       color: isOutgoing ? "common.white" : "text.primary",
-                      boxShadow: "none",
+                      boxShadow: isOutgoing
+                        ? "0 2px 8px rgba(37,99,235,0.25)"
+                        : "none",
+                      border: isOutgoing ? "none" : "1px solid",
+                      borderColor: isOutgoing ? "transparent" : "divider",
                     }}
                   >
-                    <Stack spacing={0.5}>
+                    <Stack spacing={0.25}>
                       {!isOutgoing && (
                         <Typography
                           variant="caption"
-                          fontWeight={600}
-                          color="text.secondary"
+                          fontWeight={700}
+                          sx={{ color: "#3B82F6" }}
                         >
                           {message.sender.full_name}
                         </Typography>
                       )}
                       <Typography
                         variant="body2"
-                        sx={{ whiteSpace: "pre-wrap" }}
+                        sx={{ whiteSpace: "pre-wrap", lineHeight: 1.5 }}
                       >
                         {message.body}
                       </Typography>
                       <Typography
                         variant="caption"
                         sx={{
-                          opacity: isOutgoing ? 0.8 : 0.7,
+                          opacity: isOutgoing ? 0.75 : 0.6,
                           alignSelf: "flex-end",
+                          fontSize: "0.68rem",
                         }}
                       >
                         {formatChatTime(message.created_at)}
@@ -217,10 +231,8 @@ export default function ChatThreadPanel({
                       alignItems="center"
                       sx={{ mt: 0.25, mr: 0.5 }}
                     >
-                      <DoneAllOutlined
-                        sx={{ fontSize: 14, color: "primary.main" }}
-                      />
-                      <Typography variant="caption" color="primary.main">
+                      <DoneAllOutlined sx={{ fontSize: 13, color: "#2563EB" }} />
+                      <Typography variant="caption" sx={{ color: "#2563EB", fontSize: "0.68rem" }}>
                         Seen
                       </Typography>
                     </Stack>
@@ -239,7 +251,6 @@ export default function ChatThreadPanel({
           </Stack>
         )}
       </Box>
-
       {/* Compose bar */}
       <Divider />
       <Box sx={{ p: 2 }}>
@@ -252,44 +263,56 @@ export default function ChatThreadPanel({
             {sendError}
           </Alert>
         )}
-        <Stack direction="row" spacing={1} alignItems="flex-end">
-          <TextField
-            fullWidth
-            multiline
-            minRows={1}
-            maxRows={4}
-            placeholder="Write a message"
-            value={draft}
-            onChange={(event) => onDraftChange(event.target.value)}
-            onKeyDown={(event) => {
-              if (
-                event.key === "Enter" &&
-                !event.shiftKey &&
-                !sending &&
-                draft.trim()
-              ) {
-                event.preventDefault();
-                onSend();
-              }
-            }}
-            disabled={sending}
-          />
-          <Button
-            variant="contained"
-            onClick={onSend}
-            disabled={!draft.trim() || sending}
-            startIcon={
-              sending ? (
-                <CircularProgress size={16} color="inherit" />
-              ) : (
-                <SendOutlined />
-              )
+        <OutlinedInput
+          fullWidth
+          multiline
+          minRows={1}
+          maxRows={4}
+          placeholder="Write a message…"
+          value={draft}
+          onChange={(event) => onDraftChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (
+              event.key === "Enter" &&
+              !event.shiftKey &&
+              !sending &&
+              draft.trim()
+            ) {
+              event.preventDefault();
+              onSend();
             }
-            sx={{ flexShrink: 0, minHeight: 56 }}
-          >
-            Send
-          </Button>
-        </Stack>
+          }}
+          disabled={sending}
+          sx={{ borderRadius: 3, pr: 0.5 }}
+          endAdornment={
+            <InputAdornment position="end">
+              <IconButton
+                onClick={onSend}
+                disabled={!draft.trim() || sending}
+                sx={{
+                  bgcolor: draft.trim() && !sending ? "primary.main" : "action.disabledBackground",
+                  color: draft.trim() && !sending ? "common.white" : "text.disabled",
+                  width: 36,
+                  height: 36,
+                  borderRadius: 2,
+                  transition: "background-color 0.2s",
+                  "&:hover": {
+                    bgcolor: draft.trim() && !sending ? "primary.dark" : "action.disabledBackground",
+                  },
+                  "&.Mui-disabled": {
+                    color: "text.disabled",
+                  },
+                }}
+              >
+                {sending ? (
+                  <CircularProgress size={16} color="inherit" />
+                ) : (
+                  <SendOutlined sx={{ fontSize: 18 }} />
+                )}
+              </IconButton>
+            </InputAdornment>
+          }
+        />
       </Box>
     </Paper>
   );

@@ -1,4 +1,4 @@
-import { Card, Stack, Typography, useTheme } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 
 interface OrderStatsRowProps {
     total: number;
@@ -7,79 +7,45 @@ interface OrderStatsRowProps {
     delivered: number;
 }
 
-export default function OrderStatsRow({ total, pending, inTransit, delivered }: OrderStatsRowProps) {
-    const theme = useTheme();
+interface StatBadgeProps {
+    value: number;
+    label: string;
+    color: string;
+}
 
+function StatBadge({ value, label, color }: StatBadgeProps) {
     return (
-        <Stack direction="row" spacing={1.25}>
-            <Card
-                sx={{
-                    flex: 1,
-                    p: 1.25,
-                    borderRadius: 2,
-                    backgroundColor: theme.palette.success.dark,
-                    color: 'common.white',
-                    textAlign: 'center',
-                }}
-            >
-                <Typography variant="h4" fontWeight={700} lineHeight={1.1}>
-                    {total}
-                </Typography>
-                <Typography variant="caption" sx={{ opacity: 0.95 }}>
-                    Total
-                </Typography>
-            </Card>
-            <Card
-                sx={{
-                    flex: 1,
-                    p: 1.25,
-                    borderRadius: 2,
-                    backgroundColor: theme.palette.warning.dark,
-                    color: 'common.white',
-                    textAlign: 'center',
-                }}
-            >
-                <Typography variant="h4" fontWeight={700} lineHeight={1.1}>
-                    {pending}
-                </Typography>
-                <Typography variant="caption" sx={{ opacity: 0.95 }}>
-                    Pending
-                </Typography>
-            </Card>
-            <Card
-                sx={{
-                    flex: 1,
-                    p: 1.25,
-                    borderRadius: 2,
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'common.white',
-                    textAlign: 'center',
-                }}
-            >
-                <Typography variant="h4" fontWeight={700} lineHeight={1.1}>
-                    {inTransit}
-                </Typography>
-                <Typography variant="caption" sx={{ opacity: 0.95 }}>
-                    In Transit
-                </Typography>
-            </Card>
-            <Card
-                sx={{
-                    flex: 1,
-                    p: 1.25,
-                    borderRadius: 2,
-                    backgroundColor: theme.palette.success.main,
-                    color: 'common.white',
-                    textAlign: 'center',
-                }}
-            >
-                <Typography variant="h4" fontWeight={700} lineHeight={1.1}>
-                    {delivered}
-                </Typography>
-                <Typography variant="caption" sx={{ opacity: 0.95 }}>
-                    Done
-                </Typography>
-            </Card>
+        <Box
+            sx={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 0.5,
+                py: 1.25,
+                px: 1,
+                borderRadius: 2,
+                bgcolor: color + '15',
+                border: `1px solid ${color}30`,
+            }}
+        >
+            <Typography variant="h5" fontWeight={800} lineHeight={1} sx={{ color }}>
+                {value}
+            </Typography>
+            <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ letterSpacing: '0.02em' }}>
+                {label}
+            </Typography>
+        </Box>
+    );
+}
+
+export default function OrderStatsRow({ total, pending, inTransit, delivered }: OrderStatsRowProps) {
+    return (
+        <Stack direction="row" spacing={1}>
+            <StatBadge value={total}     label="Total"     color="#2563EB" />
+            <StatBadge value={pending}   label="Pending"   color="#F59E0B" />
+            <StatBadge value={inTransit} label="In Transit" color="#6366F1" />
+            <StatBadge value={delivered} label="Done"      color="#10B981" />
         </Stack>
     );
 }

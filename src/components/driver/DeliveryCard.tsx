@@ -4,13 +4,11 @@ import {
   Card,
   Chip,
   CircularProgress,
-  IconButton,
   Stack,
   Tooltip,
   Typography,
-  useTheme,
 } from "@mui/material";
-import { FavoriteBorder, VisibilityOutlined } from "@mui/icons-material";
+import { FmdGoodOutlined, PlaceOutlined, VisibilityOutlined } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import {
   getDriverDeliveryStatusColor,
@@ -51,12 +49,8 @@ const DeliveryCard = ({
   onComplete,
   accepting = false,
 }: DeliveryCardProps) => {
-  const theme = useTheme();
   const navigate = useNavigate();
-  const statusColor = getDriverDeliveryStatusColor(
-    delivery.status,
-    theme.palette,
-  );
+  const statusColor = getDriverDeliveryStatusColor(delivery.status);
 
   const renderActionButtons = () => {
     switch (delivery.status) {
@@ -122,142 +116,102 @@ const DeliveryCard = ({
   return (
     <Card
       sx={{
-        p: 2,
-        borderRadius: 2,
-        borderLeft: `4px solid ${statusColor}`,
+        p: 0,
+        overflow: 'hidden',
+        borderLeft: `3px solid ${statusColor}`,
       }}
     >
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="flex-start"
-        sx={{ mb: 2 }}
-      >
-        <Stack spacing={0.5}>
-          <Typography variant="subtitle2" fontWeight={600}>
-            {delivery.driverName}
-          </Typography>
-          <Chip
-            label={getDriverDeliveryStatusLabel(delivery.status)}
-            size="small"
-            variant="outlined"
-            sx={{
-              width: "fit-content",
-              borderColor: statusColor,
-              color: statusColor,
-            }}
-          />
-        </Stack>
-        <Stack direction="row" alignItems="center" spacing={0.5}>
-          <FavoriteBorder
-            sx={{
-              fontSize: { xs: 20, sm: 24 },
-              color: theme.palette.text.secondary,
-              cursor: "pointer",
-            }}
-          />
-          <Typography variant="subtitle2" fontWeight={600}>
-            ${delivery.price.toFixed(2)}
-          </Typography>
-        </Stack>
-      </Stack>
-
-      <Stack spacing={1} sx={{ mb: 2 }}>
-        <Typography variant="caption" color="text.secondary">
-          {delivery.category} • {delivery.weight} • {delivery.distance}
-        </Typography>
-
-        <Stack direction="row" spacing={1} alignItems="flex-start">
-          <Box
-            sx={{
-              width: 20,
-              height: 20,
-              borderRadius: "50%",
-              backgroundColor: theme.palette.success.main,
-              flexShrink: 0,
-              mt: 0.5,
-            }}
-          />
-          <Stack spacing={0}>
-            <Typography variant="caption" color="text.secondary">
-              Pickup
-            </Typography>
-            <Typography variant="caption" fontWeight={500}>
-              {delivery.pickup}
+      <Box sx={{ px: 2, py: 1.75 }}>
+        <Stack spacing={1.5}>
+          {/* Header */}
+          <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+            <Stack spacing={0.5}>
+              <Chip
+                label={getDriverDeliveryStatusLabel(delivery.status)}
+                size="small"
+                sx={{
+                  height: 20,
+                  bgcolor: statusColor + '18',
+                  color: statusColor,
+                  border: `1px solid ${statusColor}40`,
+                  width: 'fit-content',
+                  '& .MuiChip-label': { px: 1, fontSize: '0.68rem' },
+                }}
+              />
+              <Typography variant="caption" color="text.secondary">
+                {delivery.category} · {delivery.weight} · {delivery.distance}
+              </Typography>
+            </Stack>
+            <Typography variant="subtitle1" fontWeight={700} color="success.main">
+              ${delivery.price.toFixed(2)}
             </Typography>
           </Stack>
-        </Stack>
 
-        <Stack direction="row" spacing={1} alignItems="flex-start">
-          <Box
-            sx={{
-              width: 20,
-              height: 20,
-              borderRadius: "50%",
-              backgroundColor: theme.palette.error.main,
-              flexShrink: 0,
-              mt: 0.5,
-            }}
-          />
-          <Stack spacing={0}>
-            <Typography variant="caption" color="text.secondary">
-              Drop-off
-            </Typography>
-            <Typography variant="caption" fontWeight={500}>
-              {delivery.dropoff}
-            </Typography>
+          {/* Route */}
+          <Stack spacing={0.75}>
+            <Stack direction="row" spacing={1} alignItems="flex-start">
+              <FmdGoodOutlined sx={{ fontSize: 16, color: '#10B981', mt: 0.2, flexShrink: 0 }} />
+              <Stack spacing={0}>
+                <Typography variant="caption" color="text.secondary">Pickup</Typography>
+                <Typography variant="body2" fontWeight={500} sx={{ lineHeight: 1.3 }}>{delivery.pickup}</Typography>
+              </Stack>
+            </Stack>
+            <Stack direction="row" spacing={1} alignItems="flex-start">
+              <PlaceOutlined sx={{ fontSize: 16, color: '#EF4444', mt: 0.2, flexShrink: 0 }} />
+              <Stack spacing={0}>
+                <Typography variant="caption" color="text.secondary">Drop-off</Typography>
+                <Typography variant="body2" fontWeight={500} sx={{ lineHeight: 1.3 }}>{delivery.dropoff}</Typography>
+              </Stack>
+            </Stack>
+          </Stack>
+
+          {/* Customer phone strip */}
+          {delivery.phone && (
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              sx={{ px: 1.25, py: 1, borderRadius: 1.5, bgcolor: 'action.hover' }}
+            >
+              <Typography variant="caption" color="text.secondary">Customer</Typography>
+              <Typography variant="caption" fontWeight={600}>{delivery.phone}</Typography>
+            </Stack>
+          )}
+
+          {/* Actions */}
+          <Stack direction="row" spacing={1}>
+            <Box sx={{ flex: 2 }}>{renderActionButtons()}</Box>
+            <Tooltip title="View Details">
+              <Button
+                variant="outlined"
+                size="small"
+                sx={{ flex: 1, minWidth: 0 }}
+                onClick={() => onViewDetails?.(delivery.id)}
+                startIcon={<VisibilityOutlined fontSize="small" />}
+              >
+                Details
+              </Button>
+            </Tooltip>
+            <Button
+              variant="outlined"
+              size="small"
+              sx={{ flex: 1 }}
+              disabled={delivery.status === "completed"}
+              onClick={() =>
+                navigate(`/driver/chat/${delivery.id}`, {
+                  state: {
+                    partnerName: "Customer",
+                    orderTitle: `${delivery.category} Delivery`,
+                    customerName: "Customer",
+                  },
+                })
+              }
+            >
+              Chat
+            </Button>
           </Stack>
         </Stack>
-
-        <Stack spacing={0}>
-          <Typography variant="caption" color="text.secondary">
-            Customer Phone:
-          </Typography>
-          <Typography variant="caption" fontWeight={500}>
-            {delivery.phone}
-          </Typography>
-        </Stack>
-      </Stack>
-
-      <Stack
-        direction="row"
-        spacing={1}
-        sx={{
-          "& button": {
-            flex: 1,
-          },
-        }}
-      >
-        {renderActionButtons()}
-        
-
-        <Button
-          variant="contained"
-          color="secondary"
-          size="small"
-          onClick={() => onViewDetails?.(delivery.id)}
-        >
-          Details
-        </Button>
-
-        <Button
-          variant="contained"
-          color="secondary"
-          size="small"
-          disabled={delivery.status === "completed"}
-          onClick={() =>
-            navigate(`/driver/chat/${delivery.id}`, {
-              state: {
-                partnerName: "Customer",
-                orderTitle: `${delivery.category} Delivery`,
-                customerName: "Customer",
-              },
-            })
-          }
-        >
-          Chat
-        </Button>
-      </Stack>
+      </Box>
     </Card>
   );
 };

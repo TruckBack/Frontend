@@ -14,7 +14,7 @@ interface FeatureHighlightsProps {
 export default function FeatureHighlights({ features }: FeatureHighlightsProps) {
     return (
         <Stack spacing={1.5}>
-            <Typography variant="h6" fontWeight={600}>
+            <Typography variant="h6" fontWeight={700}>
                 Why Choose TruckBack?
             </Typography>
             <Box
@@ -28,32 +28,32 @@ export default function FeatureHighlights({ features }: FeatureHighlightsProps) 
                     <Card
                         key={feature.title}
                         variant="outlined"
-                        sx={{
-                            p: 1.5,
-                            borderRadius: 2,
-                            minHeight: 132,
-                        }}
+                        sx={{ p: 2, minHeight: 120 }}
                     >
-                        <Stack spacing={1.25}>
+                        <Stack spacing={1.5}>
                             <Box
                                 sx={{
-                                    width: 34,
-                                    height: 34,
-                                    borderRadius: 1.5,
-                                    bgcolor: 'action.hover',
+                                    width: 38,
+                                    height: 38,
+                                    borderRadius: 2,
+                                    bgcolor: 'primary.main',
+                                    opacity: 1,
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
+                                    '& svg': { color: 'common.white', fontSize: 20 },
                                 }}
                             >
                                 {feature.icon}
                             </Box>
-                            <Typography variant="subtitle2" fontWeight={600}>
-                                {feature.title}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                                {feature.description}
-                            </Typography>
+                            <Stack spacing={0.5}>
+                                <Typography variant="subtitle2" fontWeight={700}>
+                                    {feature.title}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.5 }}>
+                                    {feature.description}
+                                </Typography>
+                            </Stack>
                         </Stack>
                     </Card>
                 ))}

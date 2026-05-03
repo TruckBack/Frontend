@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ExpandMore, FavoriteBorder } from '@mui/icons-material';
-import { Box, Card, Collapse, Divider, IconButton, Stack, Typography, useTheme } from '@mui/material';
+import { ExpandMore, StarRounded } from '@mui/icons-material';
+import { Box, Card, Collapse, Divider, IconButton, Stack, Typography } from '@mui/material';
 import { orderService } from '../../../services/order';
 import type { Rating } from '../../../services/types';
 import DriverRatingSection from '../DriverRatingSection';
@@ -22,7 +22,6 @@ interface PastDeliveryCardProps {
 }
 
 export default function PastDeliveryCard({ delivery }: PastDeliveryCardProps) {
-    const theme = useTheme();
     const [expanded, setExpanded] = useState(false);
     const [rating, setRating] = useState<Rating | null | undefined>(undefined);
 
@@ -37,93 +36,73 @@ export default function PastDeliveryCard({ delivery }: PastDeliveryCardProps) {
     return (
         <Card
             sx={{
-                p: 2,
-                borderRadius: 2,
-                borderLeft: `4px solid ${theme.palette.success.main}`,
+                p: 0,
+                overflow: 'hidden',
+                borderLeft: '3px solid #10B981',
             }}
         >
-            <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="flex-start"
-                sx={{ mb: 2 }}
-            >
-                <Stack spacing={0.5}>
-                    <Typography variant="subtitle2" fontWeight={600}>
-                        {delivery.customerName}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                        {delivery.completedDate}
-                    </Typography>
-                </Stack>
-                <Stack direction="row" alignItems="center" spacing={0.5}>
-                    <FavoriteBorder
-                        sx={{
-                            fontSize: { xs: 20, sm: 24 },
-                            color: theme.palette.text.secondary,
-                            cursor: 'pointer',
-                        }}
-                    />
-                    <Typography variant="subtitle2" fontWeight={600}>
+            <Box sx={{ px: 2, py: 1.75 }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
+                    <Stack spacing={0.25}>
+                        <Typography variant="subtitle2" fontWeight={700}>
+                            {delivery.customerName}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                            {delivery.completedDate} · {delivery.category} · {delivery.weight} · {delivery.distance}
+                        </Typography>
+                    </Stack>
+                    <Typography variant="subtitle1" fontWeight={700} color="success.main">
                         ${delivery.price.toFixed(2)}
                     </Typography>
                 </Stack>
-            </Stack>
 
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                {delivery.category} • {delivery.weight} • {delivery.distance}
-            </Typography>
+                {delivery.rating ? (
+                    <Stack direction="row" spacing={0.25} alignItems="center" sx={{ mb: 1 }}>
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <StarRounded
+                                key={i}
+                                sx={{
+                                    fontSize: 16,
+                                    color: i < delivery.rating! ? '#F59E0B' : 'action.disabled',
+                                }}
+                            />
+                        ))}
+                    </Stack>
+                ) : null}
 
-            {delivery.rating ? (
-                <Stack direction="row" spacing={0.5} alignItems="center">
-                    <Typography variant="caption" color="text.secondary">
-                        Rating:
+                {/* Rating section toggle */}
+                <Stack direction="row" alignItems="center">
+                    <Typography
+                        variant="caption"
+                        color="primary.main"
+                        fontWeight={600}
+                        sx={{ cursor: 'pointer', userSelect: 'none' }}
+                        onClick={() => setExpanded(e => !e)}
+                    >
+                        {expanded ? 'Hide review' : 'Customer review'}
                     </Typography>
-                    {Array.from({ length: delivery.rating }).map((_, index) => (
-                        <Box
-                            key={`${delivery.id}-rating-${index}`}
-                            sx={{
-                                color: theme.palette.warning.main,
-                                fontSize: '0.875rem',
-                            }}
-                        >
-                            ★
-                        </Box>
-                    ))}
+                    <IconButton
+                        size="small"
+                        onClick={() => setExpanded(e => !e)}
+                        sx={{
+                            transform: expanded ? 'rotate(180deg)' : 'none',
+                            transition: 'transform 0.2s',
+                            ml: 0.5,
+                        }}
+                    >
+                        <ExpandMore fontSize="small" />
+                    </IconButton>
                 </Stack>
-            ) : null}
 
-            {/* Rating section toggle */}
-            <Stack direction="row" alignItems="center" sx={{ mt: 1 }}>
-                <Typography
-                    variant="caption"
-                    color="primary.main"
-                    sx={{ cursor: 'pointer', userSelect: 'none' }}
-                    onClick={() => setExpanded(e => !e)}
-                >
-                    {expanded ? 'Hide review' : 'Customer review'}
-                </Typography>
-                <IconButton
-                    size="small"
-                    onClick={() => setExpanded(e => !e)}
-                    sx={{
-                        transform: expanded ? 'rotate(180deg)' : 'none',
-                        transition: 'transform 0.2s',
-                        ml: 0.5,
-                    }}
-                >
-                    <ExpandMore fontSize="small" />
-                </IconButton>
-            </Stack>
-
-            <Collapse in={expanded} unmountOnExit>
-                <Divider sx={{ my: 1.5 }} />
+                <Collapse in={expanded} unmountOnExit>
+                    <Divider sx={{ my: 1.5 }} />
                 {rating === undefined ? (
                     <Typography variant="caption" color="text.secondary">Loading…</Typography>
                 ) : (
                     <DriverRatingSection orderId={delivery.orderId} initialRating={rating} />
                 )}
-            </Collapse>
+                </Collapse>
+            </Box>
         </Card>
     );
 }

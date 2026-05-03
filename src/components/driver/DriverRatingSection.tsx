@@ -17,7 +17,6 @@ import {
 } from '@mui/material';
 import { orderService } from '../../services/order';
 import type { Rating } from '../../services/types';
-import RatingCard from '../shared/RatingCard';
 
 interface DriverRatingSectionProps {
     /** The raw Order id (number) */
