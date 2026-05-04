@@ -271,13 +271,14 @@ const ChatWorkspace = ({
         mx: "auto",
         px: { xs: 2, sm: 3 },
         py: { xs: 2.5, sm: 3 },
-        minHeight: {
+        height: {
           xs: "calc(100dvh - 56px - env(safe-area-inset-bottom))",
           md: "100dvh",
         },
         display: "flex",
         flexDirection: "column",
         boxSizing: "border-box",
+        overflow: "hidden",
       }}
     >
       <Stack spacing={2} sx={{ flex: 1, minHeight: 0 }}>

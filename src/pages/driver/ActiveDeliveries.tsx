@@ -6,7 +6,6 @@ import DeliveryCard, {
 } from "../../components/driver/DeliveryCard";
 import PageHeader from "../../components/shared/PageHeader";
 import DeliveryFilters from "../../components/driver/deliveries/DeliveryFilters";
-import DriverStatusToggle from "../../components/driver/DriverStatusToggle";
 import OrderDetailDialog from "../../components/shared/OrderDetailDialog";
 import { useDeliveryFiltering } from "../../hooks/useDeliveryFiltering";
 import { orderService } from "../../services/order";
@@ -127,7 +126,6 @@ const ActiveDeliveries = () => {
           height: { xs: "calc(100dvh - 56px)", md: "100dvh" },
           display: "flex",
           flexDirection: "column",
-          overflow: "hidden",
         }}
       >
         <PageHeader
@@ -135,9 +133,9 @@ const ActiveDeliveries = () => {
           subtitle="Manage your current delivery jobs"
         />
 
-        <Box sx={{ mb: 2 }}>
+        {/* <Box sx={{ mb: 2 }}>
           <DriverStatusToggle />
-        </Box>
+        </Box> */}
 
         <DeliveryFilters
           selectedFilter={selectedFilter}

@@ -1,5 +1,5 @@
+import { useEffect, useRef } from "react";
 import ArrowBackOutlined from "@mui/icons-material/ArrowBackOutlined";
-import DoneAllOutlined from "@mui/icons-material/DoneAllOutlined";
 import MessageOutlined from "@mui/icons-material/MessageOutlined";
 import SendOutlined from "@mui/icons-material/SendOutlined";
 import {
@@ -15,7 +15,6 @@ import {
   Stack,
   TextField,
   Typography,
-  useTheme,
 } from "@mui/material";
 import type { ChatMessage } from "../../../services/chat";
 import { formatChatTime } from "./chatFormatters";
@@ -53,17 +52,24 @@ export default function ChatThreadPanel({
   onSend,
   onDismissSendError,
 }: ChatThreadPanelProps) {
-  const theme = useTheme();
+  const messageViewportRef = useRef<HTMLDivElement | null>(null);
+  const hasAutoScrolledOnOpenRef = useRef(false);
 
-  // Index of the last outgoing message that has been read by the other party
-  const lastReadOutgoingIndex = (() => {
-    for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i].sender_id === userId && messages[i].is_read) {
-        return i;
-      }
-    }
-    return -1;
-  })();
+  useEffect(() => {
+    hasAutoScrolledOnOpenRef.current = false;
+  }, [conversationTitle]);
+
+  useEffect(() => {
+    if (!conversationTitle || loading || error || hasAutoScrolledOnOpenRef.current)
+      return;
+
+    requestAnimationFrame(() => {
+      const viewport = messageViewportRef.current;
+      if (!viewport) return;
+      viewport.scrollTop = viewport.scrollHeight;
+      hasAutoScrolledOnOpenRef.current = true;
+    });
+  }, [conversationTitle, loading, error, messages.length]);
 
   if (!conversationTitle) {
     return (
@@ -118,7 +124,7 @@ export default function ChatThreadPanel({
       }}
     >
       {/* Header */}
-      <Box sx={{ p: 2 }}>
+      <Box sx={{ p: 2, flexShrink: 0 }}>
         <Stack direction="row" alignItems="center" spacing={1.5}>
           {!isDesktop ? (
             <IconButton onClick={onBackToInbox} edge="start">
@@ -137,112 +143,98 @@ export default function ChatThreadPanel({
       </Box>
       <Divider />
 
-      {/* Message list */}
+      {/* Body (loading/error/messages) */}
       <Box
+        ref={messageViewportRef}
         sx={{
           flex: 1,
           minHeight: 0,
           overflowY: "auto",
-          p: 2,
-          bgcolor: theme.palette.action.hover,
+          overflowX: "hidden",
+          overscrollBehavior: "contain",
+          p: 2.5,
         }}
       >
-        {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress size={28} />
-          </Box>
-        ) : error ? (
-          <Alert severity="error" sx={{ mx: "auto", maxWidth: 420 }}>
-            {error}
-          </Alert>
-        ) : (
-          <Stack spacing={1.5}>
-            {messages.map((message, index) => {
+        <Stack
+          spacing={2}
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {loading ? (
+            <CircularProgress sx={{ alignSelf: "center", my: 4 }} />
+          ) : error ? (
+            <Alert severity="error" sx={{ my: 2 }}>
+              {error}
+            </Alert>
+          ) : (
+            messages.map((message, index) => {
               const isOutgoing = message.sender_id === userId;
-              const showSeen = isOutgoing && index === lastReadOutgoingIndex;
+              const previousMessage = index > 0 ? messages[index - 1] : null;
+              const nextMessage =
+                index < messages.length - 1 ? messages[index + 1] : null;
+
+              const isFirstInGroup =
+                !previousMessage ||
+                previousMessage.sender_id !== message.sender_id;
+
+              const isLastInGroup =
+                !nextMessage || nextMessage.sender_id !== message.sender_id;
 
               return (
-                <Box
+                <Stack
                   key={message.id}
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: isOutgoing ? "flex-end" : "flex-start",
-                  }}
+                  direction="column"
+                  alignItems={isOutgoing ? "flex-end" : "flex-start"}
                 >
                   <Card
+                    variant="outlined"
                     sx={{
-                      maxWidth: "82%",
-                      px: 1.5,
-                      py: 1.25,
-                      borderRadius: 2.5,
-                      bgcolor: isOutgoing
-                        ? theme.palette.primary.main
-                        : theme.palette.background.paper,
+                      p: 1.25,
+                      borderRadius: 3,
+                      borderTopLeftRadius: isOutgoing || !isFirstInGroup ? 3 : 0,
+                      borderTopRightRadius: !isOutgoing || !isFirstInGroup ? 3 : 0,
+                      borderBottomLeftRadius: isOutgoing || !isLastInGroup ? 3 : 0,
+                      borderBottomRightRadius:
+                        !isOutgoing || !isLastInGroup ? 3 : 0,
+                      maxWidth: "80%",
+                      bgcolor: isOutgoing ? "primary.main" : "background.paper",
                       color: isOutgoing ? "common.white" : "text.primary",
-                      boxShadow: "none",
                     }}
                   >
                     <Stack spacing={0.5}>
-                      {!isOutgoing && (
-                        <Typography
-                          variant="caption"
-                          fontWeight={600}
-                          color="text.secondary"
-                        >
-                          {message.sender.full_name}
-                        </Typography>
-                      )}
                       <Typography
                         variant="body2"
-                        sx={{ whiteSpace: "pre-wrap" }}
+                        sx={{
+                          whiteSpace: "pre-wrap",
+                          wordBreak: "break-word",
+                        }}
                       >
                         {message.body}
                       </Typography>
                       <Typography
                         variant="caption"
                         sx={{
-                          opacity: isOutgoing ? 0.8 : 0.7,
+                          opacity: isOutgoing ? 0.75 : 0.6,
                           alignSelf: "flex-end",
+                          fontSize: "0.68rem",
                         }}
                       >
                         {formatChatTime(message.created_at)}
                       </Typography>
                     </Stack>
                   </Card>
-                  {showSeen && (
-                    <Stack
-                      direction="row"
-                      spacing={0.4}
-                      alignItems="center"
-                      sx={{ mt: 0.25, mr: 0.5 }}
-                    >
-                      <DoneAllOutlined
-                        sx={{ fontSize: 14, color: "primary.main" }}
-                      />
-                      <Typography variant="caption" color="primary.main">
-                        Seen
-                      </Typography>
-                    </Stack>
-                  )}
-                </Box>
+                </Stack>
               );
-            })}
-
-            {messages.length === 0 && (
-              <Box sx={{ py: 4, display: "flex", justifyContent: "center" }}>
-                <Alert severity="info" sx={{ maxWidth: 380 }}>
-                  No messages yet. Start the conversation with {recipientName}.
-                </Alert>
-              </Box>
-            )}
-          </Stack>
-        )}
+            })
+          )}
+        </Stack>
       </Box>
 
-      {/* Compose bar */}
+      {/* Footer Input */}
       <Divider />
-      <Box sx={{ p: 2 }}>
+      <Box sx={{ p: 2, bgcolor: "background.default", flexShrink: 0 }}>
         {sendError && (
           <Alert
             severity="error"

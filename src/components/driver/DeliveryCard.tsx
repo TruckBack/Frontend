@@ -8,7 +8,6 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { FavoriteBorder } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import {
   getDriverDeliveryStatusColor,
@@ -147,13 +146,6 @@ const DeliveryCard = ({
           />
         </Stack>
         <Stack direction="row" alignItems="center" spacing={0.5}>
-          <FavoriteBorder
-            sx={{
-              fontSize: { xs: 20, sm: 24 },
-              color: theme.palette.text.secondary,
-              cursor: "pointer",
-            }}
-          />
           <Typography variant="subtitle2" fontWeight={600}>
             ${delivery.price.toFixed(2)}
           </Typography>
@@ -162,7 +154,7 @@ const DeliveryCard = ({
 
       <Stack spacing={1} sx={{ mb: 2 }}>
         <Typography variant="caption" color="text.secondary">
-          {delivery.category} • {delivery.weight} • {delivery.distance}
+          {delivery.category} • {delivery.weight}
         </Typography>
 
         <Stack direction="row" spacing={1} alignItems="flex-start">

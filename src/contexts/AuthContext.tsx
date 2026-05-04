@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import authService from "../services/auth";
 import { userService } from "../services/user";
 import { storage } from "../services/storage";
+import { driverService } from "../services/driver";
 import type {
   User,
   LoginRequest,
@@ -54,7 +55,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (data: LoginRequest) => {
     const response = await authService.login(data);
     setUser(response);
-    // User is now stored in localStorage by the service
+    if (response.role === "driver") {
+      const profile = await driverService.getMyProfile();
+      if (profile.status === "offline") {
+        await driverService.updateStatus({ status: "available" });
+        // Refresh user data if status update changes it
+        const updatedUser = await authService.getMe();
+        setUser(updatedUser);
+      }
+    }
   };
 
   const register = async (
@@ -68,6 +77,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
+    if (user && user.role === "driver") {
+      const profile = await driverService.getMyProfile();
+      if (profile.status === "available") {
+        await driverService.updateStatus({ status: "offline" });
+      }
+    }
     await authService.logout();
     setUser(null);
   };
@@ -88,6 +103,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const loginWithGoogleToken = async (idToken: string, role: UserRole) => {
     const user = await authService.loginWithGoogleToken(idToken, role);
     setUser(user);
+    if (user.role === "driver") {
+      const profile = await driverService.getMyProfile();
+      if (profile.status === "offline") {
+        await driverService.updateStatus({ status: "available" });
+        const updatedUser = await authService.getMe();
+        setUser(updatedUser);
+      }
+    }
   };
 
   const value: AuthContextType = {

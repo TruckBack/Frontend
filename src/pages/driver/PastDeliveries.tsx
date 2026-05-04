@@ -8,12 +8,13 @@ import {
 import PageHeader from '../../components/shared/PageHeader';
 import PastDeliveryCard, { type PastDelivery } from '../../components/driver/deliveries/PastDeliveryCard';
 import { orderService } from '../../services/order';
-import type { Order } from '../../services/types';
+import { userService } from '../../services/user';
+import type { Order, UserPublic } from '../../services/types';
 
-const mapOrderToPastDelivery = (order: Order): PastDelivery => ({
+const mapOrderToPastDelivery = (order: Order, customer?: UserPublic): PastDelivery => ({
     id: String(order.id),
     orderId: order.id,
-    customerName: 'Unknown Customer', // Requires fetching customer user details
+    customerName: customer?.full_name || 'Unknown Customer',
     price: order.price_cents / 100,
     category: order.cargo_description || 'General',
     weight: `${order.cargo_weight_kg || 0} kg`,
@@ -23,7 +24,7 @@ const mapOrderToPastDelivery = (order: Order): PastDelivery => ({
 });
 
 const PastDeliveries = () => {
-    const [orders, setOrders] = useState<Order[]>([]);
+    const [pastDeliveries, setPastDeliveries] = useState<PastDelivery[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -32,9 +33,19 @@ const PastDeliveries = () => {
             try {
                 setLoading(true);
                 const response = await orderService.listOrderHistory();
-                // The API returns all history, so we filter for completed/cancelled for the driver view
                 const driverHistory = response.items.filter(o => o.status === 'completed' || o.status === 'cancelled');
-                setOrders(driverHistory);
+
+                // Fetch customer details for all orders
+                const customerIds = [...new Set(driverHistory.map(o => o.customer_id))];
+                const customerPromises = customerIds.map(id => userService.getUser(id));
+                const customers = await Promise.all(customerPromises);
+                const customerMap = new Map(customers.map(c => [c.id, c]));
+
+                const deliveries = driverHistory.map(order =>
+                    mapOrderToPastDelivery(order, customerMap.get(order.customer_id))
+                );
+                setPastDeliveries(deliveries);
+
             } catch (err) {
                 setError('Failed to fetch past deliveries.');
                 console.error(err);
@@ -45,8 +56,6 @@ const PastDeliveries = () => {
 
         fetchPastDeliveries();
     }, []);
-
-    const pastDeliveries = orders.map(mapOrderToPastDelivery);
 
     if (loading) {
         return <CircularProgress sx={{ display: 'block', mx: 'auto', my: 4 }} />;

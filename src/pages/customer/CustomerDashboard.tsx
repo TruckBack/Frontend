@@ -12,7 +12,6 @@ import { useNavigate } from 'react-router-dom';
 import PageHeader from '../../components/shared/PageHeader';
 import DeliveryActionCard from '../../components/customer/dashboard/DeliveryActionCard';
 import FeatureHighlights from '../../components/customer/dashboard/FeatureHighlights';
-import RecentOrdersList from '../../components/customer/dashboard/RecentOrdersList';
 
 const features = [
     {
@@ -37,10 +36,6 @@ const features = [
     },
 ];
 
-const recentOrders = [
-    { id: '1', title: 'Furniture Delivery', status: 'Delivered', from: 'Downtown', to: 'Uptown' },
-    { id: '2', title: 'Groceries', status: 'On Route', from: 'Westside', to: 'North Park' },
-];
 
 export default function CustomerDashboard() {
     const navigate = useNavigate();
@@ -64,7 +59,6 @@ export default function CustomerDashboard() {
 
                 <DeliveryActionCard onCreateOrder={() => navigate('/customer/new-order')} />
                 <FeatureHighlights features={features} />
-                <RecentOrdersList orders={recentOrders} />
             </Stack>
         </Box>
     );

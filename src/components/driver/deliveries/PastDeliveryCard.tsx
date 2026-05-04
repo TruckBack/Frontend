@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ExpandMore, FavoriteBorder } from '@mui/icons-material';
-import { Box, Card, Collapse, Divider, IconButton, Stack, Typography, useTheme } from '@mui/material';
+import { ExpandMore } from '@mui/icons-material';
+import { Card, Collapse, Divider, IconButton, Stack, Typography, useTheme } from '@mui/material';
 import { orderService } from '../../../services/order';
 import type { Rating } from '../../../services/types';
 import DriverRatingSection from '../DriverRatingSection';
@@ -57,13 +57,6 @@ export default function PastDeliveryCard({ delivery }: PastDeliveryCardProps) {
                     </Typography>
                 </Stack>
                 <Stack direction="row" alignItems="center" spacing={0.5}>
-                    <FavoriteBorder
-                        sx={{
-                            fontSize: { xs: 20, sm: 24 },
-                            color: theme.palette.text.secondary,
-                            cursor: 'pointer',
-                        }}
-                    />
                     <Typography variant="subtitle2" fontWeight={600}>
                         ${delivery.price.toFixed(2)}
                     </Typography>
@@ -71,10 +64,10 @@ export default function PastDeliveryCard({ delivery }: PastDeliveryCardProps) {
             </Stack>
 
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                {delivery.category} • {delivery.weight} • {delivery.distance}
+                {delivery.category} • {delivery.weight}
             </Typography>
 
-            {delivery.rating ? (
+            {/* {delivery.rating ? (
                 <Stack direction="row" spacing={0.5} alignItems="center">
                     <Typography variant="caption" color="text.secondary">
                         Rating:
@@ -91,7 +84,7 @@ export default function PastDeliveryCard({ delivery }: PastDeliveryCardProps) {
                         </Box>
                     ))}
                 </Stack>
-            ) : null}
+            ) : null} */}
 
             {/* Rating section toggle */}
             <Stack direction="row" alignItems="center" sx={{ mt: 1 }}>
@@ -117,12 +110,12 @@ export default function PastDeliveryCard({ delivery }: PastDeliveryCardProps) {
             </Stack>
 
             <Collapse in={expanded} unmountOnExit>
-                <Divider sx={{ my: 1.5 }} />
-                {rating === undefined ? (
-                    <Typography variant="caption" color="text.secondary">Loading…</Typography>
-                ) : (
-                    <DriverRatingSection orderId={delivery.orderId} initialRating={rating} />
-                )}
+            <Divider sx={{ my: 1.5 }} />
+            {rating === undefined ? (
+                <Typography variant="caption" color="text.secondary">Loading…</Typography>
+            ) : (
+                <DriverRatingSection orderId={delivery.orderId} initialRating={rating} />
+            )}
             </Collapse>
         </Card>
     );

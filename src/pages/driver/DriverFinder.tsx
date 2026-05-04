@@ -109,16 +109,14 @@ const DriverFinder = () => {
 
   return (
     <Box
+
       sx={{
         width: "100%",
         maxWidth: 680,
         mx: "auto",
-        pb: { xs: 10, md: 0 },
-        boxSizing: "border-box",
-        height: { xs: "calc(100dvh - 56px)", md: "100dvh" },
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
+        px: { xs: 2, sm: 3 },
+        py: { xs: 2, sm: 3 },
+        pb: { xs: 10, md: 3 },
       }}
     >
       <PageHeader

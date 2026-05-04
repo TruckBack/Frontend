@@ -21,7 +21,9 @@ import RatingModal from '../../components/shared/RatingModal';
 import CustomerOrderCard, { type CustomerOrder } from '../../components/customer/orders/CustomerOrderCard';
 import { useOrderFiltering } from '../../hooks/useOrderFiltering';
 import { orderService } from '../../services/order';
+import { userService } from '../../services/user';
 import type { Order, OrderUpdate } from '../../services/types';
+import type { UserPublic } from '../../services/types';
 
 const mapOrderStatus = (status: Order['status']): CustomerOrder['status'] => {
     switch (status) {
@@ -40,7 +42,11 @@ const mapOrderStatus = (status: Order['status']): CustomerOrder['status'] => {
     }
 }
 
-const mapOrderToCustomerOrder = (order: Order, ratedIds: Set<number>): CustomerOrder => ({
+const mapOrderToCustomerOrder = (
+    order: Order,
+    ratedIds: Set<number>,
+    driverMap?: Map<number, UserPublic>,
+): CustomerOrder => ({
     id: String(order.id),
     orderNumber: `Order #${order.id}`,
     status: mapOrderStatus(order.status),
@@ -50,7 +56,10 @@ const mapOrderToCustomerOrder = (order: Order, ratedIds: Set<number>): CustomerO
     weight: `${order.cargo_weight_kg || 0} kg`,
     pickup: order.pickup_address,
     dropoff: order.dropoff_address,
-    driverName: 'Not assigned',
+    driverName:
+        order.driver_id && driverMap?.get(order.driver_id)
+            ? driverMap.get(order.driver_id)!.full_name
+            : 'Not assigned',
     driverPhone: '',
     rated: ratedIds.has(order.id),
 });
@@ -58,6 +67,7 @@ const mapOrderToCustomerOrder = (order: Order, ratedIds: Set<number>): CustomerO
 export default function CustomerOrders() {
     const navigate = useNavigate();
     const [orders, setOrders] = useState<Order[]>([]);
+    const [driverMap, setDriverMap] = useState<Map<number, UserPublic>>(new Map());
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -102,6 +112,24 @@ export default function CustomerOrders() {
                     seen.add(o.id);
                     return true;
                 });
+                // Fetch driver names for orders that have an assigned driver and are not pending
+                const driverIds = Array.from(new Set(
+                    unique
+                        .filter(o => o.driver_id && o.status !== 'pending')
+                        .map(o => o.driver_id as number),
+                ));
+                if (driverIds.length > 0) {
+                    try {
+                        const drivers = await Promise.all(driverIds.map(id => userService.getUser(id)));
+                        const map = new Map<number, UserPublic>(drivers.map(d => [d.id, d]));
+                        setDriverMap(map);
+                    } catch (e) {
+                        // Non-fatal — leave driverMap empty
+                        console.error('Failed to fetch driver names', e);
+                    }
+                } else {
+                    setDriverMap(new Map());
+                }
                 setOrders(unique);
             } catch (err) {
                 setError('Failed to fetch orders.');
@@ -113,7 +141,7 @@ export default function CustomerOrders() {
         fetchOrders();
     }, []);
 
-    const customerOrders = orders.map(o => mapOrderToCustomerOrder(o, ratedOrderIds));
+    const customerOrders = orders.map(o => mapOrderToCustomerOrder(o, ratedOrderIds, driverMap));
 
     const {
         selectedFilter,
