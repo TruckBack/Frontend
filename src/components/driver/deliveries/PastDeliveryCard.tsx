@@ -110,12 +110,12 @@ export default function PastDeliveryCard({ delivery }: PastDeliveryCardProps) {
             </Stack>
 
             <Collapse in={expanded} unmountOnExit>
-            <Divider sx={{ my: 1.5 }} />
-            {rating === undefined ? (
-                <Typography variant="caption" color="text.secondary">Loading…</Typography>
-            ) : (
-                <DriverRatingSection orderId={delivery.orderId} initialRating={rating} />
-            )}
+                <Divider sx={{ my: 1.5 }} />
+                {rating === undefined ? (
+                    <Typography variant="caption" color="text.secondary">Loading…</Typography>
+                ) : (
+                    <DriverRatingSection orderId={delivery.orderId} initialRating={rating} />
+                )}
             </Collapse>
         </Card>
     );

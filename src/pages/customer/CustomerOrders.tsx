@@ -235,140 +235,140 @@ export default function CustomerOrders() {
 
     return (
         <>
-        <Box
-            sx={{
-                width: '100%',
-                maxWidth: 680,
-                mx: 'auto',
-                px: { xs: 2, sm: 3 },
-                py: { xs: 2.5, sm: 3 },
-            }}
-        >
-            <Stack spacing={2.5}>
-                <PageHeader title="My Orders" subtitle="Track your delivery requests" />
-                <OrderStatsRow
-                    total={counts.total}
-                    pending={counts.pending}
-                    inTransit={counts.inTransit}
-                    delivered={counts.delivered}
-                />
-                <OrderFilters selectedFilter={selectedFilter} onSelectFilter={setSelectedFilter} />
+            <Box
+                sx={{
+                    width: '100%',
+                    maxWidth: 680,
+                    mx: 'auto',
+                    px: { xs: 2, sm: 3 },
+                    py: { xs: 2.5, sm: 3 },
+                }}
+            >
+                <Stack spacing={2.5}>
+                    <PageHeader title="My Orders" subtitle="Track your delivery requests" />
+                    <OrderStatsRow
+                        total={counts.total}
+                        pending={counts.pending}
+                        inTransit={counts.inTransit}
+                        delivered={counts.delivered}
+                    />
+                    <OrderFilters selectedFilter={selectedFilter} onSelectFilter={setSelectedFilter} />
 
-                <Stack spacing={1.5}>
-                    {filteredOrders.map((order) => (
-                        <CustomerOrderCard
-                            key={order.id}
-                            order={order}
-                            onOpenChat={handleOpenChat}
-                            onViewDetails={handleViewDetails}
-                            onEdit={handleOpenEdit}
-                            onDelete={handleOpenDelete}
-                            onRate={handleRate}
-                        />
-                    ))}
+                    <Stack spacing={1.5}>
+                        {filteredOrders.map((order) => (
+                            <CustomerOrderCard
+                                key={order.id}
+                                order={order}
+                                onOpenChat={handleOpenChat}
+                                onViewDetails={handleViewDetails}
+                                onEdit={handleOpenEdit}
+                                onDelete={handleOpenDelete}
+                                onRate={handleRate}
+                            />
+                        ))}
+                    </Stack>
                 </Stack>
-            </Stack>
-        </Box>
+            </Box>
 
-        {/* Edit Order Dialog */}
-        <Dialog open={!!editingOrder} onClose={() => setEditingOrder(null)} fullWidth maxWidth="sm">
-            <DialogTitle>Edit Order #{editingOrder?.id}</DialogTitle>
-            <DialogContent>
-                <Stack spacing={2} sx={{ mt: 1 }}>
-                    {editError && <Typography color="error" variant="body2">{editError}</Typography>}
-                    <TextField
-                        label="Pickup Address"
-                        fullWidth
-                        value={editForm.pickup_address}
-                        onChange={e => setEditForm(f => ({ ...f, pickup_address: e.target.value }))}
-                    />
-                    <TextField
-                        label="Dropoff Address"
-                        fullWidth
-                        value={editForm.dropoff_address}
-                        onChange={e => setEditForm(f => ({ ...f, dropoff_address: e.target.value }))}
-                    />
-                    <TextField
-                        label="Cargo Description"
-                        fullWidth
-                        multiline
-                        minRows={2}
-                        value={editForm.cargo_description}
-                        onChange={e => setEditForm(f => ({ ...f, cargo_description: e.target.value }))}
-                    />
-                    <Stack direction="row" spacing={2}>
+            {/* Edit Order Dialog */}
+            <Dialog open={!!editingOrder} onClose={() => setEditingOrder(null)} fullWidth maxWidth="sm">
+                <DialogTitle>Edit Order #{editingOrder?.id}</DialogTitle>
+                <DialogContent>
+                    <Stack spacing={2} sx={{ mt: 1 }}>
+                        {editError && <Typography color="error" variant="body2">{editError}</Typography>}
                         <TextField
-                            label="Weight (kg)"
-                            type="number"
+                            label="Pickup Address"
                             fullWidth
-                            value={editForm.cargo_weight_kg}
-                            onChange={e => setEditForm(f => ({ ...f, cargo_weight_kg: e.target.value }))}
+                            value={editForm.pickup_address}
+                            onChange={e => setEditForm(f => ({ ...f, pickup_address: e.target.value }))}
                         />
                         <TextField
-                            label="Budget ($)"
-                            type="number"
+                            label="Dropoff Address"
                             fullWidth
-                            value={editForm.budget}
-                            onChange={e => setEditForm(f => ({ ...f, budget: e.target.value }))}
+                            value={editForm.dropoff_address}
+                            onChange={e => setEditForm(f => ({ ...f, dropoff_address: e.target.value }))}
+                        />
+                        <TextField
+                            label="Cargo Description"
+                            fullWidth
+                            multiline
+                            minRows={2}
+                            value={editForm.cargo_description}
+                            onChange={e => setEditForm(f => ({ ...f, cargo_description: e.target.value }))}
+                        />
+                        <Stack direction="row" spacing={2}>
+                            <TextField
+                                label="Weight (kg)"
+                                type="number"
+                                fullWidth
+                                value={editForm.cargo_weight_kg}
+                                onChange={e => setEditForm(f => ({ ...f, cargo_weight_kg: e.target.value }))}
+                            />
+                            <TextField
+                                label="Budget ($)"
+                                type="number"
+                                fullWidth
+                                value={editForm.budget}
+                                onChange={e => setEditForm(f => ({ ...f, budget: e.target.value }))}
+                            />
+                        </Stack>
+                        <TextField
+                            label="Notes"
+                            fullWidth
+                            multiline
+                            minRows={2}
+                            value={editForm.notes}
+                            onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))}
                         />
                     </Stack>
-                    <TextField
-                        label="Notes"
-                        fullWidth
-                        multiline
-                        minRows={2}
-                        value={editForm.notes}
-                        onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))}
-                    />
-                </Stack>
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={() => setEditingOrder(null)} disabled={editSaving}>Cancel</Button>
-                <Button variant="contained" onClick={handleSaveEdit} disabled={editSaving}>
-                    {editSaving ? <CircularProgress size={20} color="inherit" /> : 'Save'}
-                </Button>
-            </DialogActions>
-        </Dialog>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setEditingOrder(null)} disabled={editSaving}>Cancel</Button>
+                    <Button variant="contained" onClick={handleSaveEdit} disabled={editSaving}>
+                        {editSaving ? <CircularProgress size={20} color="inherit" /> : 'Save'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
-        {/* Delete Confirmation Dialog */}
-        <Dialog open={!!deletingOrder} onClose={() => setDeletingOrder(null)}>
-            <DialogTitle>Delete Order #{deletingOrder?.id}?</DialogTitle>
-            <DialogContent>
-                <DialogContentText>
-                    This action cannot be undone. The order will be permanently deleted.
-                </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={() => setDeletingOrder(null)} disabled={deleteInProgress}>Cancel</Button>
-                <Button variant="contained" color="error" onClick={handleConfirmDelete} disabled={deleteInProgress}>
-                    {deleteInProgress ? <CircularProgress size={20} color="inherit" /> : 'Delete'}
-                </Button>
-            </DialogActions>
-        </Dialog>
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={!!deletingOrder} onClose={() => setDeletingOrder(null)}>
+                <DialogTitle>Delete Order #{deletingOrder?.id}?</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        This action cannot be undone. The order will be permanently deleted.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setDeletingOrder(null)} disabled={deleteInProgress}>Cancel</Button>
+                    <Button variant="contained" color="error" onClick={handleConfirmDelete} disabled={deleteInProgress}>
+                        {deleteInProgress ? <CircularProgress size={20} color="inherit" /> : 'Delete'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
-        <OrderDetailDialog
-            key={detailOrderId ?? 'closed'}
-            orderId={detailOrderId}
-            open={detailOrderId !== null}
-            onClose={() => setDetailOrderId(null)}
-            role="customer"
-            onChat={(_orderId: number) => {
-                const customerOrder = customerOrders.find(o => Number(o.id) === _orderId);
-                if (customerOrder) handleOpenChat(customerOrder);
-            }}
-        />
-
-        {ratingOrderId !== null && (
-            <RatingModal
-                key={ratingOrderId}
-                orderId={ratingOrderId}
-                open={ratingOrderId !== null}
-                onClose={() => setRatingOrderId(null)}
-                onRated={() => {
-                    setRatedOrderIds(prev => new Set([...prev, ratingOrderId]));
+            <OrderDetailDialog
+                key={detailOrderId ?? 'closed'}
+                orderId={detailOrderId}
+                open={detailOrderId !== null}
+                onClose={() => setDetailOrderId(null)}
+                role="customer"
+                onChat={(_orderId: number) => {
+                    const customerOrder = customerOrders.find(o => Number(o.id) === _orderId);
+                    if (customerOrder) handleOpenChat(customerOrder);
                 }}
             />
-        )}
+
+            {ratingOrderId !== null && (
+                <RatingModal
+                    key={ratingOrderId}
+                    orderId={ratingOrderId}
+                    open={ratingOrderId !== null}
+                    onClose={() => setRatingOrderId(null)}
+                    onRated={() => {
+                        setRatedOrderIds(prev => new Set([...prev, ratingOrderId]));
+                    }}
+                />
+            )}
         </>
     );
 }
