@@ -1,14 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Alert,
-  Box,
-  CircularProgress,
-  FormControlLabel,
-  Stack,
-  Switch,
-  Typography,
-} from "@mui/material";
-import { LocalShippingOutlined } from "@mui/icons-material";
+import { Alert, Box, CircularProgress, Stack, Typography } from "@mui/material";
 import { driverService } from "../../services/driver";
 import type { DriverStatus } from "../../services/types";
 
@@ -79,69 +70,68 @@ export default function DriverStatusToggle({
     return <CircularProgress size={20} />;
   }
 
-  const isBusy = status === "busy";
-  const isAvailable = status === "available";
-  const isDisabled = isBusy || toggling;
+  const segments: {
+    value: DriverStatus;
+    label: string;
+    color: string;
+    bg: string;
+  }[] = [
+    { value: "offline", label: "Offline", color: "#64748B", bg: "#64748B" },
+    { value: "available", label: "Available", color: "#10B981", bg: "#10B981" },
+    { value: "busy", label: "On Delivery", color: "#F59E0B", bg: "#F59E0B" },
+  ];
 
   return (
-    <Stack spacing={0.5}>
+    <Stack spacing={0.75}>
       <Box
         sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-          px: 2,
-          py: 1,
-          borderRadius: 2,
-          bgcolor: isBusy
-            ? "warning.light"
-            : isAvailable
-              ? "success.light"
-              : "action.selected",
-          transition: "background-color 0.3s",
+          display: "inline-flex",
+          borderRadius: 99,
+          p: "3px",
+          bgcolor: "action.selected",
+          gap: "2px",
+          width: "fit-content",
         }}
       >
-        {isBusy ? (
-          <>
-            <LocalShippingOutlined
-              sx={{ color: "warning.dark", fontSize: 20 }}
-            />
-            <Typography variant="body2" fontWeight={600} color="warning.dark">
-              On a delivery
-            </Typography>
-          </>
-        ) : (
-          <FormControlLabel
-            control={
-              <Switch
-                checked={isAvailable}
-                onChange={handleToggle}
-                disabled={isDisabled}
-                size="small"
+        {segments.map((seg) => {
+          const isActive = status === seg.value;
+          const isClickable =
+            seg.value !== "busy" && !toggling && status !== "busy";
+          return (
+            <Box
+              key={seg.value}
+              onClick={() => {
+                if (!isClickable || isActive) return;
+                handleToggle();
+              }}
+              sx={{
+                px: 1.75,
+                py: 0.6,
+                borderRadius: 99,
+                cursor: isClickable && !isActive ? "pointer" : "default",
+                bgcolor: isActive ? seg.bg : "transparent",
+                transition: "background-color 0.25s ease, color 0.25s ease",
+                display: "flex",
+                alignItems: "center",
+                gap: 0.6,
+              }}
+            >
+              {toggling && isActive && (
+                <CircularProgress size={10} sx={{ color: "common.white" }} />
+              )}
+              <Typography
+                variant="caption"
+                fontWeight={isActive ? 700 : 500}
                 sx={{
-                  "& .MuiSwitch-thumb": {
-                    bgcolor: isAvailable ? "success.main" : "text.disabled",
-                  },
-                  "& .MuiSwitch-track": {
-                    bgcolor: isAvailable ? "success.light" : undefined,
-                  },
+                  color: isActive ? "common.white" : "text.secondary",
+                  userSelect: "none",
                 }}
-              />
-            }
-            label={
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                {toggling && <CircularProgress size={12} />}
-                <Typography
-                  variant="body2"
-                  fontWeight={600}
-                  color={isAvailable ? "success.dark" : "text.secondary"}
-                >
-                  {isAvailable ? "Available" : "Offline"}
-                </Typography>
-              </Box>
-            }
-          />
-        )}
+              >
+                {seg.label}
+              </Typography>
+            </Box>
+          );
+        })}
       </Box>
 
       {error && (

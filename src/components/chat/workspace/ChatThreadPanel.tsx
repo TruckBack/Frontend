@@ -6,14 +6,14 @@ import {
   Alert,
   Avatar,
   Box,
-  Button,
   Card,
   CircularProgress,
   Divider,
   IconButton,
+  InputAdornment,
+  OutlinedInput,
   Paper,
   Stack,
-  TextField,
   Typography,
 } from "@mui/material";
 import type { ChatMessage } from "../../../services/chat";
@@ -127,15 +127,26 @@ export default function ChatThreadPanel({
       <Box sx={{ p: 2, flexShrink: 0 }}>
         <Stack direction="row" alignItems="center" spacing={1.5}>
           {!isDesktop ? (
-            <IconButton onClick={onBackToInbox} edge="start">
+            <IconButton onClick={onBackToInbox} edge="start" size="small">
               <ArrowBackOutlined />
             </IconButton>
           ) : null}
+          <Avatar
+            sx={{
+              width: 36,
+              height: 36,
+              bgcolor: "primary.main",
+              fontSize: "0.78rem",
+              fontWeight: 700,
+            }}
+          >
+            {recipientName.charAt(0).toUpperCase()}
+          </Avatar>
           <Box sx={{ minWidth: 0 }}>
-            <Typography variant="h6" fontWeight={700} noWrap>
+            <Typography variant="subtitle1" fontWeight={700} noWrap>
               {recipientName}
             </Typography>
-            <Typography variant="body2" color="text.secondary" noWrap>
+            <Typography variant="caption" color="text.secondary" noWrap>
               {conversationTitle}
             </Typography>
           </Box>
@@ -244,44 +255,63 @@ export default function ChatThreadPanel({
             {sendError}
           </Alert>
         )}
-        <Stack direction="row" spacing={1} alignItems="flex-end">
-          <TextField
-            fullWidth
-            multiline
-            minRows={1}
-            maxRows={4}
-            placeholder="Write a message"
-            value={draft}
-            onChange={(event) => onDraftChange(event.target.value)}
-            onKeyDown={(event) => {
-              if (
-                event.key === "Enter" &&
-                !event.shiftKey &&
-                !sending &&
-                draft.trim()
-              ) {
-                event.preventDefault();
-                onSend();
-              }
-            }}
-            disabled={sending}
-          />
-          <Button
-            variant="contained"
-            onClick={onSend}
-            disabled={!draft.trim() || sending}
-            startIcon={
-              sending ? (
-                <CircularProgress size={16} color="inherit" />
-              ) : (
-                <SendOutlined />
-              )
+        <OutlinedInput
+          fullWidth
+          multiline
+          minRows={1}
+          maxRows={4}
+          placeholder="Write a message…"
+          value={draft}
+          onChange={(event) => onDraftChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (
+              event.key === "Enter" &&
+              !event.shiftKey &&
+              !sending &&
+              draft.trim()
+            ) {
+              event.preventDefault();
+              onSend();
             }
-            sx={{ flexShrink: 0, minHeight: 56 }}
-          >
-            Send
-          </Button>
-        </Stack>
+          }}
+          disabled={sending}
+          sx={{ borderRadius: 3, pr: 0.5 }}
+          endAdornment={
+            <InputAdornment position="end">
+              <IconButton
+                onClick={onSend}
+                disabled={!draft.trim() || sending}
+                sx={{
+                  bgcolor:
+                    draft.trim() && !sending
+                      ? "primary.main"
+                      : "action.disabledBackground",
+                  color:
+                    draft.trim() && !sending ? "common.white" : "text.disabled",
+                  width: 36,
+                  height: 36,
+                  borderRadius: 2,
+                  transition: "background-color 0.2s",
+                  "&:hover": {
+                    bgcolor:
+                      draft.trim() && !sending
+                        ? "primary.dark"
+                        : "action.disabledBackground",
+                  },
+                  "&.Mui-disabled": {
+                    color: "text.disabled",
+                  },
+                }}
+              >
+                {sending ? (
+                  <CircularProgress size={16} color="inherit" />
+                ) : (
+                  <SendOutlined sx={{ fontSize: 18 }} />
+                )}
+              </IconButton>
+            </InputAdornment>
+          }
+        />
       </Box>
     </Paper>
   );

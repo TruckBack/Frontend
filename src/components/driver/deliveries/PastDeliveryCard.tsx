@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ExpandMore } from '@mui/icons-material';
-import { Card, Collapse, Divider, IconButton, Stack, Typography, useTheme } from '@mui/material';
+import { ExpandMore, FavoriteBorder } from '@mui/icons-material';
+import { Box, Card, Collapse, Divider, IconButton, Stack, Typography, useTheme } from '@mui/material';
 import { orderService } from '../../../services/order';
 import type { Rating } from '../../../services/types';
 import DriverRatingSection from '../DriverRatingSection';
@@ -22,15 +22,17 @@ interface PastDeliveryCardProps {
 }
 
 export default function PastDeliveryCard({ delivery }: PastDeliveryCardProps) {
-    const theme = useTheme();
     const [expanded, setExpanded] = useState(false);
     const [rating, setRating] = useState<Rating | null | undefined>(undefined);
+
+    const theme = useTheme();
 
     // Fetch rating when user expands the card
     useEffect(() => {
         if (!expanded || rating !== undefined) return;
-        orderService.getOrderRating(delivery.orderId)
-            .then(r => setRating(r))
+        orderService
+            .getOrderRating(delivery.orderId)
+            .then((r) => setRating(r))
             .catch(() => setRating(null));
     }, [expanded, delivery.orderId, rating]);
 
@@ -57,6 +59,13 @@ export default function PastDeliveryCard({ delivery }: PastDeliveryCardProps) {
                     </Typography>
                 </Stack>
                 <Stack direction="row" alignItems="center" spacing={0.5}>
+                    <FavoriteBorder
+                        sx={{
+                            fontSize: { xs: 20, sm: 24 },
+                            color: theme.palette.text.secondary,
+                            cursor: 'pointer',
+                        }}
+                    />
                     <Typography variant="subtitle2" fontWeight={600}>
                         ${delivery.price.toFixed(2)}
                     </Typography>
@@ -64,10 +73,10 @@ export default function PastDeliveryCard({ delivery }: PastDeliveryCardProps) {
             </Stack>
 
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                {delivery.category} • {delivery.weight}
+                {delivery.category} • {delivery.weight} • {delivery.distance}
             </Typography>
 
-            {/* {delivery.rating ? (
+            {delivery.rating ? (
                 <Stack direction="row" spacing={0.5} alignItems="center">
                     <Typography variant="caption" color="text.secondary">
                         Rating:
@@ -84,24 +93,25 @@ export default function PastDeliveryCard({ delivery }: PastDeliveryCardProps) {
                         </Box>
                     ))}
                 </Stack>
-            ) : null} */}
+            ) : null}
 
             {/* Rating section toggle */}
-            <Stack direction="row" alignItems="center" sx={{ mt: 1 }}>
+            <Stack direction="row" alignItems="center">
                 <Typography
                     variant="caption"
                     color="primary.main"
-                    sx={{ cursor: 'pointer', userSelect: 'none' }}
-                    onClick={() => setExpanded(e => !e)}
+                    fontWeight={600}
+                    sx={{ cursor: "pointer", userSelect: "none" }}
+                    onClick={() => setExpanded((e) => !e)}
                 >
-                    {expanded ? 'Hide review' : 'Customer review'}
+                    {expanded ? "Hide review" : "Customer review"}
                 </Typography>
                 <IconButton
                     size="small"
-                    onClick={() => setExpanded(e => !e)}
+                    onClick={() => setExpanded((e) => !e)}
                     sx={{
-                        transform: expanded ? 'rotate(180deg)' : 'none',
-                        transition: 'transform 0.2s',
+                        transform: expanded ? "rotate(180deg)" : "none",
+                        transition: "transform 0.2s",
                         ml: 0.5,
                     }}
                 >
@@ -112,9 +122,14 @@ export default function PastDeliveryCard({ delivery }: PastDeliveryCardProps) {
             <Collapse in={expanded} unmountOnExit>
                 <Divider sx={{ my: 1.5 }} />
                 {rating === undefined ? (
-                    <Typography variant="caption" color="text.secondary">Loading…</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                        Loading…
+                    </Typography>
                 ) : (
-                    <DriverRatingSection orderId={delivery.orderId} initialRating={rating} />
+                    <DriverRatingSection
+                        orderId={delivery.orderId}
+                        initialRating={rating}
+                    />
                 )}
             </Collapse>
         </Card>
