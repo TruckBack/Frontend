@@ -222,36 +222,23 @@ const DeliveryCard = ({
           </Stack>
         )}
 
-        <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-          {renderActionButtons()}
+        <Stack direction="row" spacing={1}>
+          {renderActionButtons() && (
+            <Box sx={{ flex: 1 }}>
+              {renderActionButtons()}
+            </Box>
+          )}
           <Tooltip title="View Details">
             <Button
               variant="outlined"
               size="small"
               onClick={() => onViewDetails?.(delivery.id)}
               startIcon={<VisibilityOutlined fontSize="small" />}
-              sx={{ flex: "1 1 140px" }}
+              sx={{ flex: 1 }}
             >
               Details
             </Button>
           </Tooltip>
-          <Button
-            variant="outlined"
-            size="small"
-            disabled={delivery.status === "completed"}
-            onClick={() =>
-              navigate(`/driver/chat/${delivery.id}`, {
-                state: {
-                  partnerName: "Customer",
-                  orderTitle: `${delivery.category} Delivery`,
-                  customerName: "Customer",
-                },
-              })
-            }
-            sx={{ flex: "1 1 120px" }}
-          >
-            Chat
-          </Button>
         </Stack>
       </Stack>
     </Card>

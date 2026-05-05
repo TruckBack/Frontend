@@ -139,6 +139,8 @@ const Login = () => {
         });
         setFieldErrors(newFieldErrors);
         setError("Please correct the errors below.");
+      } else if (isAxiosError(err) && err.response?.status === 401) {
+        setError("Invalid username or password");
       } else {
         setError(err instanceof Error ? err.message : "An error occurred");
       }
