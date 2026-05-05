@@ -73,16 +73,37 @@ const validateStep = (step: number, formData: NewOrderFormData, attachmentName: 
             errors.deliveryAddress = 'Delivery address is required.';
         }
 
+        const now = new Date();
+        const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
         if (!formData.preferredDate) {
             errors.preferredDate = 'Preferred date is required.';
+        } else {
+            const [y, mo, d] = formData.preferredDate.split('-').map(Number);
+            const selectedMidnight = new Date(y, mo - 1, d);
+            if (selectedMidnight < todayMidnight) {
+                errors.preferredDate = 'Date cannot be in the past.';
+            }
         }
 
         if (!formData.pickupTime) {
             errors.pickupTime = 'Pickup time is required.';
+        } else if (formData.preferredDate && !errors.preferredDate) {
+            // Combine date + time — parsed as local time
+            const pickupDateTime = new Date(`${formData.preferredDate}T${formData.pickupTime}`);
+            if (pickupDateTime <= now) {
+                errors.pickupTime = 'Pickup date and time cannot be in the past.';
+            }
         }
 
         if (!formData.deliveryBy) {
             errors.deliveryBy = 'Delivery-by time is required.';
+        } else if (formData.pickupTime && !errors.pickupTime) {
+            const pickupDateTime = new Date(`${formData.preferredDate}T${formData.pickupTime}`);
+            const deliveryDateTime = new Date(`${formData.preferredDate}T${formData.deliveryBy}`);
+            if (deliveryDateTime <= pickupDateTime) {
+                errors.deliveryBy = 'Delivery-by time must be after pickup time.';
+            }
         }
     }
 
