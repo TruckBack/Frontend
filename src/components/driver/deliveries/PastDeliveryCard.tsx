@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ExpandMore, FavoriteBorder } from '@mui/icons-material';
+import { ExpandMore } from '@mui/icons-material';
 import { Card, Collapse, Divider, IconButton, Stack, Typography, useTheme } from '@mui/material';
 import { orderService } from '../../../services/order';
 import type { Rating } from '../../../services/types';
@@ -59,13 +59,6 @@ export default function PastDeliveryCard({ delivery }: PastDeliveryCardProps) {
                     </Typography>
                 </Stack>
                 <Stack direction="row" alignItems="center" spacing={0.5}>
-                    <FavoriteBorder
-                        sx={{
-                            fontSize: { xs: 20, sm: 24 },
-                            color: theme.palette.text.secondary,
-                            cursor: 'pointer',
-                        }}
-                    />
                     <Typography variant="subtitle2" fontWeight={600}>
                         ${delivery.price.toFixed(2)}
                     </Typography>
