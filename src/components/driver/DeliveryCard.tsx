@@ -50,7 +50,6 @@ const DeliveryCard = ({
   onComplete,
   accepting = false,
 }: DeliveryCardProps) => {
-  const navigate = useNavigate();
   const statusColor = getDriverDeliveryStatusColor(delivery.status);
   const theme = useTheme();
 
