@@ -134,7 +134,7 @@ export const unreadStore = {
 
 function buildWsUrl(orderId: number | string, token: string): string {
     const base = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
-    const wsBase = base.replace(/^http/, 'ws');
+    const wsBase = base.replace(/^https?/, (match: string) => match === 'https' ? 'wss' : 'ws');
     return `${wsBase}/chat/ws/${orderId}?token=${encodeURIComponent(token)}`;
 }
 
