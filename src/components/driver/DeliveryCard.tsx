@@ -10,7 +10,6 @@ import {
   useTheme,
 } from "@mui/material";
 import { VisibilityOutlined } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
 import {
   getDriverDeliveryStatusColor,
   getDriverDeliveryStatusLabel,
