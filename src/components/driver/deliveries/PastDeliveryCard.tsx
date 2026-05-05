@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ExpandMore, FavoriteBorder } from '@mui/icons-material';
-import { Box, Card, Collapse, Divider, IconButton, Stack, Typography, useTheme } from '@mui/material';
+import { Card, Collapse, Divider, IconButton, Stack, Typography, useTheme } from '@mui/material';
 import { orderService } from '../../../services/order';
 import type { Rating } from '../../../services/types';
 import DriverRatingSection from '../DriverRatingSection';
@@ -75,25 +75,6 @@ export default function PastDeliveryCard({ delivery }: PastDeliveryCardProps) {
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
                 {delivery.category} • {delivery.weight} • {delivery.distance}
             </Typography>
-
-            {delivery.rating ? (
-                <Stack direction="row" spacing={0.5} alignItems="center">
-                    <Typography variant="caption" color="text.secondary">
-                        Rating:
-                    </Typography>
-                    {Array.from({ length: delivery.rating }).map((_, index) => (
-                        <Box
-                            key={`${delivery.id}-rating-${index}`}
-                            sx={{
-                                color: theme.palette.warning.main,
-                                fontSize: '0.875rem',
-                            }}
-                        >
-                            ★
-                        </Box>
-                    ))}
-                </Stack>
-            ) : null}
 
             {/* Rating section toggle */}
             <Stack direction="row" alignItems="center">
