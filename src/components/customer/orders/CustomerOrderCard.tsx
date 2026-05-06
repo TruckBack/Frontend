@@ -1,8 +1,11 @@
 import {
+  CheckCircle,
   DeleteOutline,
   EditOutlined,
   FmdGoodOutlined,
+  LocalShipping,
   PlaceOutlined,
+  RadioButtonUnchecked,
   StarOutline,
   VisibilityOutlined,
 } from "@mui/icons-material";
@@ -11,6 +14,7 @@ import {
   Button,
   Card,
   Chip,
+  Divider,
   IconButton,
   Stack,
   Tooltip,
@@ -195,19 +199,16 @@ export default function CustomerOrderCard({
             </Typography>
           </Stack>
 
+          {/* Status timeline */}
+          {order.status !== "cancelled" && (
+            <>
+              <Divider />
+              <StatusTimeline status={order.status} />
+            </>
+          )}
+
           {/* Actions */}
           <Stack direction="row" spacing={1}>
-            <Button
-              variant="contained"
-              size="small"
-              sx={{ flex: 1.8 }}
-              disabled={
-                order.driverName === "Not assigned" ||
-                order.status === "delivered"
-              }
-            >
-              Track Delivery
-            </Button>
             <Button
               variant="outlined"
               size="small"
@@ -249,5 +250,74 @@ export default function CustomerOrderCard({
         </Stack>
       </Box>
     </Card>
+  );
+}
+
+const TIMELINE_STEPS: {
+  key: CustomerOrderStatus | "in-transit";
+  label: string;
+}[] = [
+  { key: "pending", label: "Pending" },
+  { key: "in-transit", label: "In Transit" },
+  { key: "delivered", label: "Delivered" },
+];
+
+function StatusTimeline({ status }: { status: CustomerOrderStatus }) {
+  const stepIndex = TIMELINE_STEPS.findIndex((s) => s.key === status);
+
+  return (
+    <Stack direction="row" alignItems="center" spacing={0}>
+      {TIMELINE_STEPS.map((step, idx) => {
+        const done =
+          idx < stepIndex || (status === "delivered" && idx === stepIndex);
+        const active = idx === stepIndex && status !== "delivered";
+        const color = active
+          ? getCustomerOrderStatusColor(status)
+          : done
+            ? "#10B981"
+            : "#CBD5E1";
+
+        return (
+          <Stack
+            key={step.key}
+            direction="row"
+            alignItems="center"
+            sx={{ flex: 1, minWidth: 0 }}
+          >
+            <Stack alignItems="center" spacing={0.25} sx={{ minWidth: 48 }}>
+              {done ? (
+                <CheckCircle sx={{ fontSize: 16, color: "#10B981" }} />
+              ) : active && status === "in-transit" ? (
+                <LocalShipping sx={{ fontSize: 16, color }} />
+              ) : (
+                <RadioButtonUnchecked sx={{ fontSize: 16, color }} />
+              )}
+              <Typography
+                variant="caption"
+                sx={{
+                  fontSize: "0.6rem",
+                  fontWeight: active ? 700 : 500,
+                  color: active ? color : done ? "#10B981" : "text.disabled",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {step.label}
+              </Typography>
+            </Stack>
+            {idx < TIMELINE_STEPS.length - 1 && (
+              <Box
+                sx={{
+                  flex: 1,
+                  height: 2,
+                  mb: 2.2,
+                  bgcolor: done ? "#10B981" : "divider",
+                  borderRadius: 1,
+                }}
+              />
+            )}
+          </Stack>
+        );
+      })}
+    </Stack>
   );
 }
